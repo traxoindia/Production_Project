@@ -1,34 +1,43 @@
-// App.jsx (Main Application File)
+// App.jsx
 import React, { useState } from 'react';
-import { FormProvider, useFormContext } from './context/FormContext';
+import { FormProvider } from './context/FormContext';
 import Stepper from './components/Stepper';
 import Step1_FormDetails from './components/Step1_FormDetails';
 import Step2_Review from './components/Step2_Review';
 import { CheckCheck } from 'lucide-react';
 import Navbar from './pages/Navbar';
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
+import { Routes, Route } from "react-router-dom";
+import { ToastContainer } from 'react-toastify';
+import ProtectedRoute from "./ProtectedRoute";
+import 'react-toastify/dist/ReactToastify.css';
 import Login from './pages/Login';
+import Manage from './Superadmin/Manage';
+import Dashboard from './Superadmin/Dashboard';
+import ProductionDepartment from './Departments/ProductionDepartment';
+import Navbar1 from './pages/Navbar1';
+import DepartmentPage from './Departments/DepartmentPage';
+import HardwareDepartment from './Departments/HardwareDepartment';
+import AccountsFinanceDepartment from './Departments/AccountsFinanceDepartment';
+import SoftwareDepartment from './Departments/SoftwareDepartment';
+import ServicesOperationDepartment from './Departments/ServicesOperationDepartment';
+import HrDepartment from './Departments/HrDepartment';
+import EmployeeList from './pages/EmployeeList';
+import AssignWork from './pages/AssignWork';
+import Navbar3 from './pages/Navbar3';
+import AssignWork1 from './pages/AssignWork1';
 
+// ----------------------------
+// FORM CONTAINER COMPONENT
+// ----------------------------
 const FormContainer = () => {
     const [currentStep, setCurrentStep] = useState(1);
     const [isComplete, setIsComplete] = useState(false);
-    const { formData } = useFormContext();
 
-    const nextStep = () => {
-        setCurrentStep(prev => prev + 1);
-    };
-
-    const prevStep = () => {
-        setCurrentStep(prev => prev - 1);
-    };
+    const nextStep = () => setCurrentStep(prev => prev + 1);
+    const prevStep = () => setCurrentStep(prev => prev - 1);
 
     const completeForm = () => {
         setIsComplete(true);
-        // In a real app, you would send formData to the API here
-        console.log("--- Final Form Data Submitted ---");
-        console.log(formData);
-        console.log("---------------------------------");
     };
 
     const renderStep = () => {
@@ -40,9 +49,6 @@ const FormContainer = () => {
                     <p className="mt-3 text-lg text-green-600">
                         Performance Bank Guarantee successfully submitted.
                     </p>
-                    <pre className="mt-6 p-4 bg-white border rounded text-left text-sm text-gray-800 overflow-auto">
-                        {JSON.stringify(formData, null, 2)}
-                    </pre>
                 </div>
             );
         }
@@ -59,35 +65,124 @@ const FormContainer = () => {
 
     return (
         <>
-            <Navbar />
+            <Navbar3/>
 
             <div className="min-h-screen bg-gray-100 py-10">
-
                 <div className="max-w-4xl mx-auto px-4">
-
-
                     <Stepper currentStep={currentStep} />
-
-                    <div className="mt-8">
-                        {renderStep()}
-                    </div>
+                    <div className="mt-8">{renderStep()}</div>
                 </div>
             </div>
         </>
     );
 };
 
-
-// Main App export that includes the FormProvider
+// ----------------------------
+// MAIN APP COMPONENT
+// ----------------------------
 export default function App() {
     return (
         <FormProvider>
-           
             <Routes>
-            <Route path='/test' element={ <FormContainer />}/>
-              
+
+                {/* PROTECTED ROUTE */}
+                <Route
+                    path="/employees/ProductionDepartment"
+                    element={
+                        <ProtectedRoute>
+                            <FormContainer />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/superadmin"
+                    element={
+                        <ProtectedRoute>
+                            <Manage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/superadmin/dashboard"
+                    element={
+                        <ProtectedRoute>
+                            <Dashboard />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/departments/account-&-finance-department"
+                    element={
+                        <ProtectedRoute>
+                            <AccountsFinanceDepartment />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/departments/software-department"
+                    element={
+                        <ProtectedRoute>
+                            <SoftwareDepartment />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/departments/production-department"
+                    element={
+                        <ProtectedRoute>
+                            <ProductionDepartment />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/departments/services-&-operation-department"
+                    element={
+                        <ProtectedRoute>
+                            <ServicesOperationDepartment />
+                        </ProtectedRoute>
+                    }
+                />
+
+
+                <Route
+                    path="/departments/hr-department"
+                    element={
+                        <ProtectedRoute>
+                            <HrDepartment />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/employees"
+                    element={
+                        <ProtectedRoute>
+                            <EmployeeList />
+                        </ProtectedRoute>
+                    }
+                />
+                 <Route
+                    path="/assignwork"
+                    element={
+                        <ProtectedRoute>
+                            <AssignWork />
+                        </ProtectedRoute>
+                    }
+                />
+                  <Route
+                    path="/assignworkProduction"
+                    element={
+                        <ProtectedRoute>
+                            <AssignWork1 />
+                        </ProtectedRoute>
+                    }
+                />
+                
+                {/* PUBLIC LOGIN */}
                 <Route path="/" element={<Login />} />
+
             </Routes>
+
+            <ToastContainer position="top-right" autoClose={4000} />
         </FormProvider>
     );
 }
