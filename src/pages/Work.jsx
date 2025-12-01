@@ -124,6 +124,7 @@ const AddBarcodeForm = ({ assignment }) => {
             };
 
             const response = await fetch(ADD_BARCODE_API, {
+                
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
