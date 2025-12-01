@@ -36,10 +36,10 @@ function Login() {
                 if (data.user.role === "superadmin") {
                     navigate("/superadmin/dashboard");
                 } else if (data.user.role === "Production Department") {
-                    navigate("/assignworkProduction");
+                    navigate("/employees");
                 }
                 else {
-                    navigate("/employees");
+                    navigate("/assignworkProduction");
                 }
             } else {
                 toast.error(data.message || "Invalid credentials");

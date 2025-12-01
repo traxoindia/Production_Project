@@ -25,6 +25,7 @@ import EmployeeList from './pages/EmployeeList';
 import AssignWork from './pages/AssignWork';
 import Navbar3 from './pages/Navbar3';
 import AssignWork1 from './pages/AssignWork1';
+import Work from './pages/Work';
 
 // ----------------------------
 // FORM CONTAINER COMPONENT
@@ -173,6 +174,14 @@ export default function App() {
                     element={
                         <ProtectedRoute>
                             <AssignWork1 />
+                        </ProtectedRoute>
+                    }
+                />
+                 <Route
+                    path="/work"
+                    element={
+                        <ProtectedRoute>
+                            <Work />
                         </ProtectedRoute>
                     }
                 />

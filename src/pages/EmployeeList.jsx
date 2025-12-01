@@ -3,15 +3,16 @@ import { User, Mail, Phone, Briefcase, RefreshCw } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Navbar from '../pages/Navbar'; // Adjust path as necessary
 import Navbar1 from './Navbar1';
+import ProductList from './Productlist';
 
 // --- API Endpoint for fetching all employees ---
-const FETCH_EMPLOYEES_API = "https://vanaras.onrender.com/api/v1/superadmin/fetchAllEmployee"; 
+const FETCH_EMPLOYEES_API = "https://vanaras.onrender.com/api/v1/superadmin/fetchAllEmployee";
 
 // --- 💻 Main Component: EmployeeList ---
 function EmployeeList() {
     const [employees, setEmployees] = useState([]);
     const [loadingTable, setLoadingTable] = useState(true);
-    const [refreshTrigger, setRefreshTrigger] = useState(0); 
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     // Function to fetch all Employees
     const fetchEmployees = async () => {
@@ -19,10 +20,10 @@ function EmployeeList() {
         const token = localStorage.getItem("token");
 
         if (!token) {
-             console.error("Token missing. Cannot fetch Employees.");
-             setEmployees([]);
-             setLoadingTable(false);
-             return;
+            console.error("Token missing. Cannot fetch Employees.");
+            setEmployees([]);
+            setLoadingTable(false);
+            return;
         }
 
         try {
@@ -40,7 +41,7 @@ function EmployeeList() {
 
             const data = await response.json();
             console.log("Fetched Employee Data:", data);
-            
+
             // --- DATA MAPPING CORRECTION ---
             // Correctly access the array using data.emp
             if (data.emp && Array.isArray(data.emp)) {
@@ -53,21 +54,21 @@ function EmployeeList() {
                         // The department info isn't directly available in the emp object 
                         // in your provided data, so we set a placeholder for now.
                         // You might need a separate API call to link emp to DepartmentHead to DepartmentName
-                        department: 'Assigned Head: ' + (emp.departmentHeadId ? 'Yes' : 'No'), 
+                        department: 'Assigned Head: ' + (emp.departmentHeadId ? 'Yes' : 'No'),
                         // Assuming 'Active' as default status since no isActive field is present
-                        status: 'Active', 
+                        status: 'Active',
                     }));
-                
+
                 setEmployees(fetchedEmployees);
             } else {
                 console.error("API response structure is incorrect: missing 'emp' array.");
                 setEmployees([]);
             }
-            
+
         } catch (error) {
             console.error("Error fetching Employees:", error);
             toast.error(`Error loading employees: ${error.message}.`, { position: "top-right" });
-            setEmployees([]); 
+            setEmployees([]);
         } finally {
             setLoadingTable(false);
         }
@@ -81,9 +82,12 @@ function EmployeeList() {
 
     return (
         <>
-            <Navbar1/>
-        
-            <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
+            <Navbar1 />
+            <div className=''>
+                <ProductList />
+            </div>
+
+            <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8 -mt-80">
                 <div className="max-w-7xl mx-auto">
 
                     {/* Header and Button */}
@@ -92,7 +96,7 @@ function EmployeeList() {
                             <User size={30} className="text-blue-600" />
                             My Employees List
                         </h1>
-                        
+
                         {/* Optional: Add Employee Button (If you don't use the Navbar button) */}
                         <button
                             onClick={() => setRefreshTrigger(prev => prev + 1)}
@@ -104,7 +108,7 @@ function EmployeeList() {
                             Refresh List
                         </button>
                     </header>
-                    
+
                     {/* --- Employees Table UI --- */}
                     <div className="bg-white shadow-xl rounded-xl overflow-hidden">
                         <div className="p-5 border-b">
@@ -112,7 +116,7 @@ function EmployeeList() {
                                 Total Employees ({employees.length})
                             </h2>
                         </div>
-                        
+
                         {loadingTable ? (
                             <div className="p-8 text-center text-gray-500">
                                 <svg className="animate-spin mx-auto h-8 w-8 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

@@ -1,15 +1,21 @@
 // Navbar3.jsx
 import React, { useState, useEffect } from 'react';
-import { LogOut, Menu, X, Briefcase } from 'lucide-react'; // Only include icons used in Navbar3
+import { LogOut, Menu, X, Briefcase, ClipboardList } from 'lucide-react'; // Added ClipboardList for "Work"
 import { toast } from "react-toastify";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import logo from '../Images/logo.png';
 
-// Define the remaining Navigation Item constant
+// Define the Navigation Item constants
 const NAV_ITEM_ASSIGN_WORK = {
     name: 'Assign Work',
     path: '/assignworkProduction',
     icon: <Briefcase size={18} />
+};
+
+const NAV_ITEM_WORK = { // NEW NAV ITEM
+    name: 'Work',
+    path: '/work',
+    icon: <ClipboardList size={18} />
 };
 
 const Navbar3 = () => {
@@ -52,6 +58,17 @@ const Navbar3 = () => {
                         </Link>
 
                         <div className="hidden md:flex ml-10 space-x-1 items-center">
+
+                            {/* WORK Link (NEW) */}
+                            <Link
+                                to={NAV_ITEM_WORK.path}
+                                className={`text-gray-700 hover:bg-gray-100 hover:text-blue-600 px-3 py-2 
+                                            rounded-lg text-sm font-medium flex items-center gap-1
+                                            ${location.pathname === NAV_ITEM_WORK.path ? 'bg-gray-100 text-blue-600' : ''}`}
+                            >
+                                {NAV_ITEM_WORK.icon}
+                                {NAV_ITEM_WORK.name}
+                            </Link>
 
                             {/* ASSIGN WORK Link */}
                             <Link
@@ -96,6 +113,18 @@ const Navbar3 = () => {
                 <div className="md:hidden bg-gray-100 pb-3 shadow-inner">
                     <div className="px-3 pt-3 pb-2 space-y-2">
 
+                        {/* Mobile WORK Link (NEW) */}
+                        <Link
+                            to={NAV_ITEM_WORK.path}
+                            onClick={() => setIsMenuOpen(false)} // Close menu on click
+                            className={`w-full text-left text-gray-700 hover:bg-gray-200 
+                                        px-3 py-2 rounded-lg text-base font-medium flex items-center gap-2
+                                        ${location.pathname === NAV_ITEM_WORK.path ? 'bg-gray-200 text-blue-600' : ''}`}
+                        >
+                            {NAV_ITEM_WORK.icon}
+                            {NAV_ITEM_WORK.name}
+                        </Link>
+                        
                         {/* Mobile ASSIGN WORK Link */}
                         <Link
                             to={NAV_ITEM_ASSIGN_WORK.path}

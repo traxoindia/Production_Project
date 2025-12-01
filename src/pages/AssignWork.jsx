@@ -1,21 +1,32 @@
 // AssignWork.jsx
 
 import React, { useState, useEffect } from 'react';
-import { Plus, X, Briefcase, User, Users, RefreshCw, ClipboardList, Send } from 'lucide-react';
+import { Plus, X, Briefcase, User, Users, RefreshCw, ClipboardList, Send, ChevronDown } from 'lucide-react'; // Added ChevronDown for select input
 import { toast } from 'react-toastify';
-import Navbar1 from '../pages/Navbar1'; // Adjust path as necessary
+import Navbar3 from '../pages/Navbar3'; // Adjust path as necessary
+import Navbar1 from './Navbar1';
 
 // API Endpoints
 const FETCH_EMPLOYEES_API = "https://vanaras.onrender.com/api/v1/superadmin/fetchAllEmployee"; 
 const ASSIGN_WORK_API = "https://vanaras.onrender.com/api/v1/superadmin/AssignWorkToEmployee"; 
 const FETCH_ASSIGNMENTS_API = "https://vanaras.onrender.com/api/v1/superadmin/epartment_Head_Show_Assign_work_Employee"; 
 
+// --- FIXED WORK TITLE OPTIONS ---
+const WORK_TITLE_OPTIONS = [
+    'Add Barcode', 
+    'Soldering', 
+    'Battery connection & Capacitor & add battery', 
+    'Frimware update', // Corrected spelling to Firmware update for general use, if intended
+    'QC check', 
+    'Print Sticker'
+];
 
-// --- 🧱 Modal Component: AssignWorkModal (Kept unchanged for brevity/focus) ---
+
+// --- 🧱 Modal Component: AssignWorkModal ---
 const AssignWorkModal = ({ isOpen, onClose, onAssignmentMade, employees }) => {
     const [formData, setFormData] = useState({ 
         empId: '', 
-        workTitel: '', 
+        workTitel: '', // Will hold the selected option
         workDescription: '' 
     });
     const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +43,8 @@ const AssignWorkModal = ({ isOpen, onClose, onAssignmentMade, employees }) => {
         e.preventDefault();
         
         const { empId, workTitel, workDescription } = formData;
-        if (!empId || !workTitel.trim() || !workDescription.trim()) {
+        // Check if a title was selected (value must not be empty string)
+        if (!empId || !workTitel || !workDescription.trim()) {
             toast.error("Please fill in all required fields.", { position: "bottom-right" });
             return;
         }
@@ -49,7 +61,7 @@ const AssignWorkModal = ({ isOpen, onClose, onAssignmentMade, employees }) => {
         try {
             const payload = {
                 empId: empId,
-                workTitel: workTitel.trim(), 
+                workTitel: workTitel, // Send the selected title
                 workDescription: workDescription.trim(), 
             };
             
@@ -130,22 +142,31 @@ const AssignWorkModal = ({ isOpen, onClose, onAssignmentMade, employees }) => {
                             </div>
                         </div>
 
-                        {/* Work Title (workTitel) */}
+                        {/* Work Title Dropdown (UPDATED) */}
                         <div>
                             <label htmlFor="workTitel" className="block text-sm font-medium text-gray-700 mb-1">
                                 Work Title
                             </label>
-                            <input
-                                type="text"
-                                id="workTitel"
-                                name="workTitel"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="e.g., Q4 Budget Review"
-                                value={formData.workTitel}
-                                onChange={handleChange}
-                                required
-                                disabled={isLoading}
-                            />
+                            <div className="relative">
+                                <Briefcase size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                                <select
+                                    id="workTitel"
+                                    name="workTitel"
+                                    className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                                    value={formData.workTitel}
+                                    onChange={handleChange}
+                                    required
+                                    disabled={isLoading}
+                                >
+                                    <option value="">-- Select Work Title --</option>
+                                    {WORK_TITLE_OPTIONS.map((title) => (
+                                        <option key={title} value={title}>
+                                            {title}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown size={16} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none" />
+                            </div>
                         </div>
 
                         {/* Work Description (workDescription) */}
@@ -233,7 +254,7 @@ function AssignWork() {
         }
     };
 
-    // 2. Fetch Assignments (for Table) - **UPDATED LOGIC**
+    // 2. Fetch Assignments (for Table) - Unchanged Logic (Uses assignWorkList)
     const fetchAssignments = async () => {
         setLoadingAssignments(true);
         const token = localStorage.getItem("token");
@@ -250,16 +271,13 @@ function AssignWork() {
 
             const data = await response.json();
             
-            // Access the assignment list using the correct key: assignWorkList
             if (data.assignWorkList && Array.isArray(data.assignWorkList)) {
                 const fetchedAssignments = data.assignWorkList.map(assignment => ({
                     id: assignment._id,
-                    // NESTED ACCESS: workAssignToId contains the employee details
                     employeeName: assignment.workAssignToId?.empName || 'Unknown Employee', 
                     taskTitle: assignment.workTitel || 'No Title',
                     task: assignment.workDescription || 'No Description',
-                    assignedDate: new Date(assignment.createdAt).toLocaleDateString(), // Format date
-                    // Map boolean status to string
+                    assignedDate: new Date(assignment.createdAt).toLocaleDateString(), 
                     status: assignment.status ? 'Completed' : 'Pending', 
                 }));
 
