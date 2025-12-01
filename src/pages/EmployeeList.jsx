@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { User, Mail, Phone, Briefcase, RefreshCw } from 'lucide-react';
 import { toast } from 'react-toastify';
-import Navbar from '../pages/Navbar'; // Adjust path as necessary
 import Navbar1 from './Navbar1';
-import ProductList from './Productlist';
+import ProductList from './ProductList';
 
 // --- API Endpoint for fetching all employees ---
 const FETCH_EMPLOYEES_API = "https://vanaras.onrender.com/api/v1/superadmin/fetchAllEmployee";
