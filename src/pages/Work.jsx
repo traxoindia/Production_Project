@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, ClipboardList, Package, CheckCircle, Clock, BatteryCharging, Printer, X, Plus, Zap, Cpu, Send, User } from 'lucide-react';
+import { RefreshCw, ClipboardList, Package, CheckCircle, Clock, BatteryCharging, Printer, X, Plus, Zap, Cpu, Send, User, ChevronDown, Battery } from 'lucide-react';
 import Navbar3 from './Navbar3';
 import { toast } from 'react-toastify'; // Use standard toast
+// Inside Work.jsx imports
+import BatteryConnectionWorkstation from './BatteryConnectionWorkstation'; // Adjust path as needed
 
 // --- API Endpoint ---
 const FETCH_EMPLOYEE_WORK_LIST_API = "https://vanaras.onrender.com/api/v1/superadmin/FetchLoginEmployeeWorkList";
 
 // --- Constants ---
 const WORK_TITLE_OPTIONS = [
-    'Add Barcode', 
-    'Soldering', 
-    'Battery connection & Capacitor & add battery', 
-    'Frimware update', 
-    'QC check', 
+    'Add Barcode',
+    'Soldering',
+    'Battery connection & Capacitor & add battery',
+    'Frimware update',
+    'QC check',
     'Print Sticker'
 ];
 
@@ -33,12 +35,12 @@ const generateBatchCode = () => {
 const generateLotCode = () => {
     const today = new Date();
     const dateString = today.toISOString().slice(0, 10).replace(/-/g, '');
-    const uniquePart = Math.floor(Math.random() * 900) + 100; 
+    const uniquePart = Math.floor(Math.random() * 900) + 100;
     return `LOT-${dateString}-${uniquePart}`;
 };
 
 // --- API Endpoints ---
-const ADD_BARCODE_API = "https://vanaras.onrender.com/api/v1/superadmin/addBarCode"; 
+const ADD_BARCODE_API = "https://vanaras.onrender.com/api/v1/superadmin/addBarCode";
 const FETCH_IMEI_LIST_API = "https://vanaras.onrender.com/api/v1/superadmin/fetchAllBarCodeIMEINo";
 // --------------------
 
@@ -48,21 +50,21 @@ const FETCH_IMEI_LIST_API = "https://vanaras.onrender.com/api/v1/superadmin/fetc
 const AddBarcodeForm = ({ assignment }) => {
     // State for form fields
     const [batchNo, setBatchNo] = useState(generateBatchCode());
-    const [lotNo, setLotNo] = useState(generateLotCode()); 
-    const [imeiNo, setImeiNo] = useState(''); 
-    
+    const [lotNo, setLotNo] = useState(generateLotCode());
+    const [imeiNo, setImeiNo] = useState('');
+
     // State for loading/data
     const [isLoading, setIsLoading] = useState(false);
     const [imeiList, setImeiList] = useState([]); // State for fetched IMEI list
     const [listLoading, setListLoading] = useState(true);
     const [listRefreshTrigger, setListRefreshTrigger] = useState(0); // For refreshing the list
-    
+
     // Re-generate Batch/Lot codes on mount (to set the starting state)
     useEffect(() => {
         setBatchNo(generateBatchCode());
         setLotNo(generateLotCode());
         // Fetch IMEI list on mount and refresh trigger change
-        fetchIMEIList(); 
+        fetchIMEIList();
     }, [listRefreshTrigger]);
 
 
@@ -92,9 +94,9 @@ const AddBarcodeForm = ({ assignment }) => {
             const data = await response.json();
             // Assuming the list is returned under 'allBarCodeIMEINo' or 'allBarCode'
             const fetchedList = data.allBarCodeIMEINo || data.allBarCode || [];
-            
+
             setImeiList(fetchedList);
-            
+
         } catch (error) {
             console.error("Error fetching IMEI list:", error);
             toast.error("Failed to load IMEI list history.", { position: "bottom-center" });
@@ -107,24 +109,24 @@ const AddBarcodeForm = ({ assignment }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!imeiNo.trim()) {
             toast.error('Please enter the IMEI NO.', { position: "bottom-center" });
             return;
         }
-        
+
         setIsLoading(true);
         const token = localStorage.getItem("token");
 
         try {
             const payload = {
-                batchNo: batchNo, 
-                lotNo: lotNo, 
+                batchNo: batchNo,
+                lotNo: lotNo,
                 imeiNo: imeiNo.trim()
             };
 
             const response = await fetch(ADD_BARCODE_API, {
-                
+
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -139,13 +141,13 @@ const AddBarcodeForm = ({ assignment }) => {
                 const errorMessage = data.message || `Failed to save barcode data. Status: ${response.status}`;
                 throw new Error(errorMessage);
             }
-            
+
             toast.success(`Barcode data saved successfully for IMEI: ${imeiNo.trim()}`, { position: "top-center" });
-            
+
             // Clear input and refresh the list
-            setImeiNo(''); 
+            setImeiNo('');
             setListRefreshTrigger(prev => prev + 1); // Trigger useEffect to fetch new list
-            
+
         } catch (error) {
             console.error("Error saving barcode data:", error);
             toast.error(`Error: ${error.message || "Could not save barcode data."}`, { position: "bottom-center" });
@@ -160,7 +162,7 @@ const AddBarcodeForm = ({ assignment }) => {
 
                 {/* LEFT COLUMN: Barcode Entry Form (Takes 2/3 width) */}
                 <div className="lg:col-span-2">
-                    
+
                     <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl shadow-inner space-y-6">
                         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
                             <p className="text-sm text-yellow-800 flex items-center gap-2 font-semibold">
@@ -168,7 +170,7 @@ const AddBarcodeForm = ({ assignment }) => {
                                 **Batch No** (Daily Static) | **Lot No** (Unique per session)
                             </p>
                         </div>
-                        
+
                         <div className="grid md:grid-cols-2 gap-6">
                             {/* Batch No */}
                             <div>
@@ -180,7 +182,7 @@ const AddBarcodeForm = ({ assignment }) => {
                                     className="w-full px-4 py-3 bg-gray-100 border-2 border-gray-300 rounded-lg cursor-not-allowed font-mono text-lg"
                                 />
                             </div>
-                            
+
                             {/* Lot No */}
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">Lot Number</label>
@@ -265,250 +267,556 @@ const AddBarcodeForm = ({ assignment }) => {
 // ----------------------------------------------------------------------
 // ## 2. Task UI Component: Soldering
 // ----------------------------------------------------------------------
-const SolderingChecklist = ({ assignment }) => {
-    const initialChecks = Array(17).fill(false);
-    const [checklist, setChecklist] = useState(initialChecks);
-    const [isLoading, setIsLoading] = useState(false);
 
-    const checkpoints = [
-        'Power Supply Connection', 'Ground Wire Integrity', 'Main Board Connections',
-        'Resistor Placement', 'Capacitor Soldering', 'LED Indicators',
-        'Switch Mechanism', 'Sensor Wiring', 'Battery Terminals',
-        'Heat Sink Attachment', 'Wire Insulation', 'Solder Joint Quality',
-        'Cold Solder Check', 'Bridge Detection', 'Component Alignment',
-        'Flux Residue Cleaning', 'Final Visual Inspection'
-    ];
+const CHECKPOINTS = [
+    '+12v', 'GND (SL No. 2)', 'IGNITION', 'DIN1', 'DIN2', 'SCS', 'LED',
+    '4V_SOS', 'AN1', 'AN2', 'DIN3', 'OP2', 'GND (SL No. 13)', 'OP1',
+    'TX', 'RX', 'GND (SL No. 17)'
+];
+const TOTAL_CHECKS = CHECKPOINTS.length;
+const MARK_SOLDERING_COMPLETE_API = "https://vanaras.onrender.com/api/v1/superadmin/addSolderingDetails";
+
+const IndividualChecklist = ({ imeiEntry, onStatusChange }) => {
+    // State to hold the checklist data (17 booleans)
+    const [checklist, setChecklist] = useState(Array(TOTAL_CHECKS).fill(false));
+    const [isSaving, setIsSaving] = useState(false);
+
+    // Check initial completion status from the parent data
+    const [isCompletedLocally, setIsCompletedLocally] = useState(imeiEntry.isComplete);
+
+    const completedCount = checklist.filter(Boolean).length;
+    const allChecked = completedCount === TOTAL_CHECKS;
+
+    // Helper to map checklist array index to the required API key
+    const getApiKey = (index) => {
+        const apiKeys = [
+            'plus12v', 'gnd2', 'ignition', 'din1', 'din2', 'scs', 'led',
+            'sos4v', 'an1', 'an2', 'din3', 'op2', 'gnd13', 'op1',
+            'tx', 'rx', 'gnd17'
+        ];
+        return apiKeys[index];
+    };
 
     const handleCheck = (index) => {
+        if (isSaving || isCompletedLocally) return;
         const newChecklist = [...checklist];
         newChecklist[index] = !newChecklist[index];
         setChecklist(newChecklist);
     };
 
-    const allChecked = checklist.every(Boolean);
-    const completedCount = checklist.filter(Boolean).length;
+    // --- Select All Function ---
+    const handleSelectAll = () => {
+        if (isSaving || isCompletedLocally) return;
+        const areAllChecked = checklist.every(Boolean);
+        setChecklist(Array(TOTAL_CHECKS).fill(!areAllChecked));
+    };
+    // -----------------------------
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (!allChecked) {
-            toast.error("Please ensure all 17 checks are selected.", { position: "bottom-right" });
+
+    const handleComplete = async () => {
+        if (!allChecked) return;
+        setIsSaving(true);
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            toast.error("Authentication token is missing.", { position: 'bottom-right' });
+            setIsSaving(false);
             return;
         }
 
-        setIsLoading(true);
-        console.log("Submitting Soldering Checklist:", { checks: checklist, assignmentId: assignment.id });
+        try {
+            // 1. Submit the detailed soldering checks (addSolderingDetails)
+            const detailsPayload = {
+                barcodeImeiId: imeiEntry._id,
+            };
+            checklist.forEach((isChecked, index) => {
+                const key = getApiKey(index);
+                detailsPayload[key] = isChecked;
+            });
 
-        setTimeout(() => {
-            toast.success(`Soldering checklist completed for Task: ${assignment.taskTitle}`, { position: "bottom-right" });
-            setIsLoading(false);
-        }, 1500);
+            const detailsResponse = await fetch(MARK_SOLDERING_COMPLETE_API, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(detailsPayload),
+            });
+
+            const detailsData = await detailsResponse.json();
+
+            if (!detailsResponse.ok || !detailsData.success) {
+                const errorMessage = detailsData.message || 'Failed to submit detailed soldering checks.';
+                throw new Error(errorMessage);
+            }
+
+            // 2. SUCCESS LOGIC
+            toast.success(`QC successful and details saved for IMEI ${imeiEntry.imeiNo}.`, { position: 'top-center' });
+
+            // 3. Disable UI locally and notify parent
+            setIsCompletedLocally(true);
+            onStatusChange(imeiEntry._id); // Notifies parent (SolderingChecklist) to refresh the accordion list
+
+        } catch (error) {
+            console.error("Error submitting soldering details:", error);
+            toast.error(`Submission failed: ${error.message}`, { position: 'bottom-right' });
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
-        <div className="p-4 sm:p-8">
-            <div className="max-w-4xl mx-auto">
-                <div className="bg-gradient-to-r from-red-600 to-orange-700 text-white p-6 rounded-t-2xl">
-                    <h3 className="text-2xl font-bold flex items-center gap-3">
-                        <Zap size={28} />
-                        Soldering Quality Control Checklist
-                    </h3>
-                    <p className="text-red-100 mt-2">17-Point Comprehensive Inspection Protocol</p>
+        <div className="p-4 bg-white border-t border-red-200">
+
+            <div className="mb-4">
+                <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm font-semibold text-gray-700">Progress</span>
+                    <span className={`text-sm font-bold ${allChecked ? 'text-green-600' : 'text-orange-600'}`}>
+                        {completedCount}/{TOTAL_CHECKS} Complete
+                    </span>
                 </div>
-                
-                <form onSubmit={handleSubmit} className="bg-white p-8 rounded-b-2xl shadow-xl space-y-6">
-                    <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded">
-                        <p className="text-sm text-red-800 font-semibold">
-                            ⚠ All 17 checkpoints must be verified before submission
-                        </p>
-                    </div>
+                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                    <div
+                        className={`h-full transition-all duration-300 ${allChecked ? 'bg-green-500' : 'bg-orange-500'}`}
+                        style={{ width: `${(completedCount / TOTAL_CHECKS) * 100}%` }}
+                    />
+                </div>
+            </div>
 
-                    {/* Progress Bar */}
-                    <div className="mb-6">
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-semibold text-gray-700">Progress</span>
-                            <span className={`text-sm font-bold ${allChecked ? 'text-green-600' : 'text-orange-600'}`}>
-                                {completedCount}/17 Complete
-                            </span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                            <div 
-                                className={`h-full transition-all duration-300 ${allChecked ? 'bg-green-500' : 'bg-orange-500'}`}
-                                style={{ width: `${(completedCount / 17) * 100}%` }}
-                            />
-                        </div>
-                    </div>
+            {/* Select All Button Section */}
+            <div className="flex justify-end mb-3">
+                <button
+                    type="button"
+                    onClick={handleSelectAll}
+                    className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors duration-200 
+                        ${isCompletedLocally
+                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                            : allChecked
+                                ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                                : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
+                    disabled={isCompletedLocally || isSaving}
+                >
+                    {isCompletedLocally ? 'QC Passed' : allChecked ? 'Deselect All' : 'Select All Points'}
+                </button>
+            </div>
 
-                    <div className="grid md:grid-cols-2 gap-4 max-h-96 overflow-y-auto border-2 border-gray-200 p-5 rounded-xl bg-gray-50">
-                        {checklist.map((isChecked, index) => (
-                            <div key={index} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 hover:border-red-300 transition">
-                                <input
-                                    type="checkbox"
-                                    checked={isChecked}
-                                    onChange={() => handleCheck(index)}
-                                    id={`check-${index}`}
-                                    className="h-5 w-5 text-red-600 border-gray-300 rounded focus:ring-red-500 mt-0.5"
-                                />
-                                <label htmlFor={`check-${index}`} className="text-sm text-gray-800 font-medium cursor-pointer">
-                                    <span className="text-red-600 font-bold">#{index + 1}</span> {checkpoints[index]}
-                                </label>
-                            </div>
-                        ))}
+            <div className="grid md:grid-cols-3 gap-2 max-h-64 overflow-y-auto pr-2">
+                {CHECKPOINTS.map((label, index) => (
+                    <div key={index} className="flex items-center gap-2 p-1.5 bg-gray-50 rounded text-xs hover:bg-gray-100">
+                        <input
+                            type="checkbox"
+                            checked={checklist[index]}
+                            onChange={() => handleCheck(index)}
+                            id={`check-${imeiEntry.imeiNo}-${index}`}
+                            className="h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                            disabled={isSaving || isCompletedLocally}
+                        />
+                        <label htmlFor={`check-${imeiEntry.imeiNo}-${index}`} className="text-gray-700 font-medium cursor-pointer flex-1">
+                            {label}
+                        </label>
                     </div>
+                ))}
+            </div>
 
-                    <div className="pt-4 flex justify-between items-center border-t pt-4">
-                        <span className={`text-lg font-bold ${allChecked ? 'text-green-600' : 'text-red-600'}`}>
-                            Status: {allChecked ? 'All Checks Complete' : `${17 - completedCount} checks remaining`}
-                        </span>
-                        <button
-                            type="submit"
-                            className="px-8 py-3 bg-gradient-to-r from-red-600 to-orange-600 text-white font-semibold rounded-lg hover:from-red-700 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition shadow-lg"
-                            disabled={isLoading || !allChecked}
-                        >
-                            {isLoading ? 'Submitting...' : <><CheckCircle size={20} /> Finish Soldering</>}
-                        </button>
-                    </div>
-                </form>
+            <div className="mt-4 flex justify-end">
+                {isCompletedLocally ? (
+                    <span className="px-6 py-2 text-sm font-bold text-green-700 border border-green-300 rounded-lg">
+                        Successfully Completed
+                    </span>
+                ) : (
+                    <button
+                        onClick={handleComplete}
+                        className="px-6 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center gap-2 transition"
+                        disabled={isSaving || !allChecked}
+                    >
+                        {isSaving ? 'Submitting...' : <><CheckCircle size={18} /> Finish Soldering</>}
+                    </button>
+                )}
             </div>
         </div>
     );
 };
+const SolderingChecklist = ({ assignment }) => {
+    const [imeiData, setImeiData] = useState([]);
+    const [listLoading, setListLoading] = useState(true);
+    const [activeImeiId, setActiveImeiId] = useState(null); // The currently open accordion item
+    const [completedIds, setCompletedIds] = useState(new Set());
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+    const [unlockedImeiId, setUnlockedImeiId] = useState(null);
+    const [verifyingId, setVerifyingId] = useState(null);
+
+    const FETCH_IMEI_LIST_API = "https://vanaras.onrender.com/api/v1/superadmin/fetchAllBarCodeIMEINo";
+    const VERIFY_IMEI_AGAIN_API = "https://vanaras.onrender.com/api/v1/superadmin/veriFyImeiNoAgain";
+
+    const fetchIMEIList = async () => {
+        setListLoading(true);
+        const token = localStorage.getItem("token");
+
+        try {
+            const response = await fetch(FETCH_IMEI_LIST_API, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch IMEI list: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            const allImeis = data.allBarCodeIMEINo || data.allBarCode || [];
+            let firstOpenId = null;
+
+            const fetchedImeis = allImeis.map(imei => {
+                // ✅ UPDATED: Use the new solderingStatus property for permanent completion
+                const isComplete = imei.solderingStatus === true;
+
+                // 1. Check if this item should be the initial open accordion (if status_ONE is true and NOT already completed)
+                if (imei.status_ONE === true && !isComplete && !firstOpenId) {
+                    firstOpenId = imei._id;
+                }
+
+                return {
+                    ...imei,
+                    assignmentId: assignment.id,
+                    isComplete: isComplete, // Final completion status
+                    hasStatusOne: imei.status_ONE === true, // Status for initial unlock
+                };
+            });
+
+            setImeiData(fetchedImeis);
+
+            // 2. Set the active accordion ID and unlock access for the unit with status_ONE
+            if (firstOpenId) {
+                setActiveImeiId(firstOpenId);
+                setUnlockedImeiId(firstOpenId);
+            }
+
+        } catch (error) {
+            console.error("Error fetching IMEI list:", error);
+            toast.error("Failed to load IMEI list history.", { position: "bottom-center" });
+        } finally {
+            setListLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchIMEIList();
+    }, [refreshTrigger, completedIds]);
+
+    const handleImeiComplete = (imeiId) => {
+        // Since isComplete is now governed by the API's solderingStatus, we just need to refresh
+        // the list and clear local states after a successful submission from IndividualChecklist.
+        setUnlockedImeiId(null);
+        setActiveImeiId(null);
+        setRefreshTrigger(prev => prev + 1);
+    };
+
+    // --- Verification Click Logic (Unchanged logic, ensures status_ONE is set) ---
+    const handleVerificationClick = async (imeiEntry) => {
+        if (imeiEntry.isComplete) {
+            toast.warn(`IMEI ${imeiEntry.imeiNo} is already completed.`, { position: "top-center" });
+            return;
+        }
+
+        if (imeiEntry.hasStatusOne) {
+            toast.info(`IMEI ${imeiEntry.imeiNo} is ready. Opening checklist.`, { position: "top-center" });
+            setUnlockedImeiId(imeiEntry._id);
+            setActiveImeiId(imeiEntry._id);
+            return;
+        }
+
+        setVerifyingId(imeiEntry._id);
+        const token = localStorage.getItem("token");
+
+        try {
+            const payload = { imeiNo: imeiEntry.imeiNo };
+            const response = await fetch(VERIFY_IMEI_AGAIN_API, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                const errorMessage = data.message || `Verification failed for ${imeiEntry.imeiNo}.`;
+                throw new Error(errorMessage);
+            }
+
+            toast.success(`IMEI ${imeiEntry.imeiNo} verified. Checklist unlocked.`, { position: "top-center" });
+            setUnlockedImeiId(imeiEntry._id);
+            setActiveImeiId(imeiEntry._id);
+            setRefreshTrigger(prev => prev + 1);
+
+        } catch (error) {
+            console.error("Error during IMEI verification:", error);
+            toast.error(`Verification Failed: ${error.message}`, { position: "top-center" });
+            setUnlockedImeiId(null);
+        } finally {
+            setVerifyingId(null);
+        }
+    };
+    // -------------------------------
+
+    const isImeiAccessible = (imeiId) => {
+        // Accessible if it has status_ONE OR if the user just verified it locally
+        return imeiData.find(i => i._id === imeiId)?.hasStatusOne || imeiId === unlockedImeiId;
+    };
+
+    const handleAccordionToggle = (imeiId) => {
+        const imei = imeiData.find(i => i._id === imeiId);
+        // Only allow toggle if the item is unlocked/has status_ONE OR is already completed
+        if (imei.isComplete || isImeiAccessible(imeiId)) {
+            setActiveImeiId(activeImeiId === imeiId ? null : imeiId);
+        }
+    };
+
+    return (
+        <div className="p-4 sm:p-8">
+            <div className="max-w-5xl mx-auto">
+                <div className="bg-gradient-to-r from-red-600 to-orange-700 text-white p-6 rounded-t-2xl">
+                    <h3 className="text-2xl font-bold flex items-center gap-3">
+                        <Zap size={28} />
+                        Soldering Workstation
+                    </h3>
+                    <p className="text-red-100 mt-2">17-Point QC for multiple units assigned to this task.</p>
+                </div>
+
+                <div className="bg-white p-8 rounded-b-2xl shadow-xl space-y-6">
+
+                    <h4 className="text-xl font-bold text-gray-700">Units Requiring Verification</h4>
+
+                    {listLoading ? (
+                        <div className="text-center py-10">Loading IMEI list...</div>
+                    ) : imeiData.length === 0 ? (
+                        <div className="text-center py-10 text-gray-500">No units found requiring soldering for this assignment.</div>
+                    ) : (
+                        <div className="space-y-3">
+                            {imeiData.map((imeiEntry) => {
+                                const isCompleted = imeiEntry.isComplete;
+                                const hasStatusOne = imeiEntry.hasStatusOne;
+                                const isUnlocked = isImeiAccessible(imeiEntry._id);
+                                const isActive = imeiEntry._id === activeImeiId;
+                                const isProcessing = verifyingId === imeiEntry._id;
+                                const isButtonDisabled = isProcessing || isCompleted;
+
+                                return (
+                                    <div key={imeiEntry._id} className="border border-gray-200 rounded-lg overflow-hidden">
+                                        {/* Accordion Header */}
+                                        <div
+                                            className={`w-full flex justify-between items-center p-3 text-left transition-all duration-300 
+                                            ${isCompleted ? 'bg-green-100 text-green-800' : 'bg-gray-50'}`}
+                                        >
+
+                                            <div className="flex items-center gap-3">
+                                                {isCompleted ? <CheckCircle size={20} className="text-green-700" /> : <Clock size={20} className="text-gray-500" />}
+                                                <span className="font-mono text-lg text-gray-800">{imeiEntry.imeiNo}</span>
+                                            </div>
+
+                                            {/* Action Button / Status Display */}
+                                            <div>
+                                                {isCompleted ? (
+                                                    <span className="font-bold text-green-700">QC Passed</span>
+                                                ) : isUnlocked || hasStatusOne ? (
+                                                    <button
+                                                        onClick={() => handleAccordionToggle(imeiEntry._id)}
+                                                        className={`px-4 py-1 text-sm font-semibold rounded-lg transition-colors ${isActive ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-indigo-500 text-white hover:bg-indigo-600'}`}
+                                                    >
+                                                        {isActive ? 'Hide Checklist' : 'Show Checklist'}
+                                                        <ChevronDown size={18} className={`inline ml-2 transform transition-transform ${isActive ? 'rotate-180' : 'rotate-0'}`} />
+                                                    </button>
+                                                ) : (
+                                                    // Verify Button (Only shown if status_ONE is false)
+                                                    <button
+                                                        onClick={() => handleVerificationClick(imeiEntry)}
+                                                        className="px-4 py-1 text-sm bg-yellow-500 text-white font-semibold rounded-lg hover:bg-yellow-600 disabled:opacity-50 flex items-center gap-2"
+                                                        disabled={isButtonDisabled}
+                                                    >
+                                                        {isProcessing ? <RefreshCw size={14} className="animate-spin" /> : 'Verify & Start'}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Accordion Content */}
+                                        {isActive && (isUnlocked || hasStatusOne) && !isCompleted && (
+                                            <IndividualChecklist
+                                                imeiEntry={imeiEntry}
+                                                onStatusChange={handleImeiComplete}
+                                            />
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+
+
+
 
 // ----------------------------------------------------------------------
 // ## 3. Battery Connection & Capacitor
 // ----------------------------------------------------------------------
-const BatteryConnectionForm = ({ assignment }) => {
-    const [batteryType, setBatteryType] = useState('');
-    const [voltage, setVoltage] = useState('');
-    const [capacitorValue, setCapacitorValue] = useState('');
-    const [connectionChecks, setConnectionChecks] = useState({
-        polarity: false,
-        isolation: false,
-        capacitorPlacement: false,
-        voltageTest: false
-    });
-    const [isLoading, setIsLoading] = useState(false);
+// const BatteryConnectionForm = ({ assignment }) => {
+//     const [batteryType, setBatteryType] = useState('');
+//     const [voltage, setVoltage] = useState('');
+//     const [capacitorValue, setCapacitorValue] = useState('');
+//     const [connectionChecks, setConnectionChecks] = useState({
+//         polarity: false,
+//         isolation: false,
+//         capacitorPlacement: false,
+//         voltageTest: false
+//     });
+//     const [isLoading, setIsLoading] = useState(false);
 
-    const handleCheckChange = (key) => {
-        setConnectionChecks(prev => ({ ...prev, [key]: !prev[key] }));
-    };
+//     const handleCheckChange = (key) => {
+//         setConnectionChecks(prev => ({ ...prev, [key]: !prev[key] }));
+//     };
 
-    const allChecksComplete = Object.values(connectionChecks).every(Boolean);
+//     const allChecksComplete = Object.values(connectionChecks).every(Boolean);
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (!batteryType || !voltage || !capacitorValue || !allChecksComplete) {
-            alert('Please complete all fields and checks');
-            return;
-        }
-        setIsLoading(true);
-        console.log("Battery Connection Data:", { batteryType, voltage, capacitorValue, connectionChecks });
+//     const handleSubmit = (e) => {
+//         e.preventDefault();
+//         if (!batteryType || !voltage || !capacitorValue || !allChecksComplete) {
+//             alert('Please complete all fields and checks');
+//             return;
+//         }
+//         setIsLoading(true);
+//         console.log("Battery Connection Data:", { batteryType, voltage, capacitorValue, connectionChecks });
+
+//         setTimeout(() => {
+//             alert('Battery connection completed successfully!');
+//             setIsLoading(false);
+//         }, 1500);
+//     };
+
+//     return (
+//         <div className="p-4 sm:p-8">
+//             <div className="max-w-3xl mx-auto">
+//                 <div className="bg-gradient-to-r from-green-500 to-teal-600 text-white p-6 rounded-t-2xl">
+//                     <h3 className="text-2xl font-bold flex items-center gap-3">
+//                         <BatteryCharging size={28} />
+//                         Battery Connection & Capacitor Installation
+//                     </h3>
+//                     <p className="text-green-100 mt-2">Power system assembly and verification</p>
+//                 </div>
+
+//                 <form onSubmit={handleSubmit} className="bg-white p-8 rounded-b-2xl shadow-xl space-y-6">
+//                     <div className="grid md:grid-cols-2 gap-6">
+//                         <div>
+//                             <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                                 Battery Type <span className="text-red-500">*</span>
+//                             </label>
+//                             <select
+//                                 value={batteryType}
+//                                 onChange={(e) => setBatteryType(e.target.value)}
+//                                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none"
+//                                 required
+//                             >
+//                                 <option value="">Select battery type</option>
+//                                 <option value="Li-Ion">Lithium-Ion</option>
+//                                 <option value="Li-Po">Lithium-Polymer</option>
+//                                 <option value="NiMH">Nickel-Metal Hydride</option>
+//                                 <option value="Alkaline">Alkaline</option>
+//                             </select>
+//                         </div>
+
+//                         <div>
+//                             <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                                 Voltage (V) <span className="text-red-500">*</span>
+//                             </label>
+//                             <input
+//                                 type="number"
+//                                 step="0.1"
+//                                 value={voltage}
+//                                 onChange={(e) => setVoltage(e.target.value)}
+//                                 placeholder="e.g., 3.7"
+//                                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none"
+//                                 required
+//                             />
+//                         </div>
+//                     </div>
+
+//                     <div>
+//                         <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                             Capacitor Value (µF) <span className="text-red-500">*</span>
+//                         </label>
+//                         <input
+//                             type="number"
+//                             value={capacitorValue}
+//                             onChange={(e) => setCapacitorValue(e.target.value)}
+//                             placeholder="e.g., 100"
+//                             className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none"
+//                             required
+//                         />
+//                     </div>
+
+//                     <div className="bg-green-50 border-2 border-green-200 p-5 rounded-xl">
+//                         <h4 className="font-semibold text-gray-800 mb-4">Safety Verification Checklist</h4>
+//                         <div className="space-y-3">
+//                             {Object.entries({
+//                                 polarity: 'Battery Polarity Verified (+/-)',
+//                                 isolation: 'Electrical Isolation Confirmed',
+//                                 capacitorPlacement: 'Capacitor Correctly Positioned',
+//                                 voltageTest: 'Voltage Output Tested'
+//                             }).map(([key, label]) => (
+//                                 <div key={key} className="flex items-center gap-3">
+//                                     <input
+//                                         type="checkbox"
+//                                         checked={connectionChecks[key]}
+//                                         onChange={() => handleCheckChange(key)}
+//                                         id={key}
+//                                         className="h-5 w-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
+//                                     />
+//                                     <label htmlFor={key} className="text-sm text-gray-700 font-medium cursor-pointer">
+//                                         {label}
+//                                     </label>
+//                                 </div>
+//                             ))}
+//                         </div>
+//                     </div>
+
+//                     <div className="pt-4 flex justify-end">
+//                         <button
+//                             type="submit"
+//                             className="px-8 py-3 bg-gradient-to-r from-green-600 to-teal-600 text-white font-semibold rounded-lg hover:from-green-700 hover:to-teal-700 disabled:opacity-50 flex items-center gap-2 transition shadow-lg"
+//                             disabled={isLoading || !allChecksComplete}
+//                         >
+//                             {isLoading ? 'Saving...' : <><CheckCircle size={20} /> Complete Installation</>}
+//                         </button>
+//                     </div>
+//                 </form>
+//             </div>
+//         </div>
+//     );
+// };
+
+
         
-        setTimeout(() => {
-            alert('Battery connection completed successfully!');
-            setIsLoading(false);
-        }, 1500);
-    };
 
-    return (
-        <div className="p-4 sm:p-8">
-            <div className="max-w-3xl mx-auto">
-                <div className="bg-gradient-to-r from-green-500 to-teal-600 text-white p-6 rounded-t-2xl">
-                    <h3 className="text-2xl font-bold flex items-center gap-3">
-                        <BatteryCharging size={28} />
-                        Battery Connection & Capacitor Installation
-                    </h3>
-                    <p className="text-green-100 mt-2">Power system assembly and verification</p>
-                </div>
-                
-                <form onSubmit={handleSubmit} className="bg-white p-8 rounded-b-2xl shadow-xl space-y-6">
-                    <div className="grid md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                Battery Type <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={batteryType}
-                                onChange={(e) => setBatteryType(e.target.value)}
-                                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none"
-                                required
-                            >
-                                <option value="">Select battery type</option>
-                                <option value="Li-Ion">Lithium-Ion</option>
-                                <option value="Li-Po">Lithium-Polymer</option>
-                                <option value="NiMH">Nickel-Metal Hydride</option>
-                                <option value="Alkaline">Alkaline</option>
-                            </select>
-                        </div>
 
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                Voltage (V) <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="number"
-                                step="0.1"
-                                value={voltage}
-                                onChange={(e) => setVoltage(e.target.value)}
-                                placeholder="e.g., 3.7"
-                                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none"
-                                required
-                            />
-                        </div>
-                    </div>
 
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Capacitor Value (µF) <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            type="number"
-                            value={capacitorValue}
-                            onChange={(e) => setCapacitorValue(e.target.value)}
-                            placeholder="e.g., 100"
-                            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none"
-                            required
-                        />
-                    </div>
 
-                    <div className="bg-green-50 border-2 border-green-200 p-5 rounded-xl">
-                        <h4 className="font-semibold text-gray-800 mb-4">Safety Verification Checklist</h4>
-                        <div className="space-y-3">
-                            {Object.entries({
-                                polarity: 'Battery Polarity Verified (+/-)',
-                                isolation: 'Electrical Isolation Confirmed',
-                                capacitorPlacement: 'Capacitor Correctly Positioned',
-                                voltageTest: 'Voltage Output Tested'
-                            }).map(([key, label]) => (
-                                <div key={key} className="flex items-center gap-3">
-                                    <input
-                                        type="checkbox"
-                                        checked={connectionChecks[key]}
-                                        onChange={() => handleCheckChange(key)}
-                                        id={key}
-                                        className="h-5 w-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                                    />
-                                    <label htmlFor={key} className="text-sm text-gray-700 font-medium cursor-pointer">
-                                        {label}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
 
-                    <div className="pt-4 flex justify-end">
-                        <button
-                            type="submit"
-                            className="px-8 py-3 bg-gradient-to-r from-green-600 to-teal-600 text-white font-semibold rounded-lg hover:from-green-700 hover:to-teal-700 disabled:opacity-50 flex items-center gap-2 transition shadow-lg"
-                            disabled={isLoading || !allChecksComplete}
-                        >
-                            {isLoading ? 'Saving...' : <><CheckCircle size={20} /> Complete Installation</>}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    );
-};
+
+
+
+
+
+
+
+
+
+
 
 // ----------------------------------------------------------------------
 // ## 4. Firmware Update
@@ -559,7 +867,7 @@ const FirmwareUpdateForm = ({ assignment }) => {
                     </h3>
                     <p className="text-purple-100 mt-2">Device software upgrade management</p>
                 </div>
-                
+
                 <form onSubmit={handleUpdate} className="bg-white p-8 rounded-b-2xl shadow-xl space-y-6">
                     <div className="grid md:grid-cols-2 gap-6">
                         <div>
@@ -602,7 +910,7 @@ const FirmwareUpdateForm = ({ assignment }) => {
                                 <span className="text-sm font-bold text-purple-600">{progress}%</span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                                <div 
+                                <div
                                     className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300"
                                     style={{ width: `${progress}%` }}
                                 />
@@ -662,7 +970,7 @@ const QCCheckForm = ({ assignment }) => {
         }
         setIsLoading(true);
         console.log("QC Check Data:", { qcChecks, defectsFound, qcNotes, passFail });
-        
+
         setTimeout(() => {
             alert('QC check completed successfully!');
             setIsLoading(false);
@@ -679,7 +987,7 @@ const QCCheckForm = ({ assignment }) => {
                     </h3>
                     <p className="text-cyan-100 mt-2">Final product quality assurance verification</p>
                 </div>
-                
+
                 <form onSubmit={handleSubmit} className="bg-white p-8 rounded-b-2xl shadow-xl space-y-6">
                     <div className="bg-cyan-50 border-2 border-cyan-200 p-5 rounded-xl">
                         <h4 className="font-semibold text-gray-800 mb-4">QC Inspection Checklist</h4>
@@ -740,7 +1048,7 @@ const QCCheckForm = ({ assignment }) => {
                         </label>
                         <div className="flex gap-4">
                             <label className="flex items-center gap-2 px-6 py-3 border-2 rounded-lg cursor-pointer hover:bg-green-50 transition"
-                                   style={{ borderColor: passFail === 'pass' ? '#10b981' : '#d1d5db', backgroundColor: passFail === 'pass' ? '#ecfdf5' : 'white' }}>
+                                style={{ borderColor: passFail === 'pass' ? '#10b981' : '#d1d5db', backgroundColor: passFail === 'pass' ? '#ecfdf5' : 'white' }}>
                                 <input
                                     type="radio"
                                     name="passFail"
@@ -752,7 +1060,7 @@ const QCCheckForm = ({ assignment }) => {
                                 <span className="font-semibold text-green-700">PASS ✓</span>
                             </label>
                             <label className="flex items-center gap-2 px-6 py-3 border-2 rounded-lg cursor-pointer hover:bg-red-50 transition"
-                                   style={{ borderColor: passFail === 'fail' ? '#ef4444' : '#d1d5db', backgroundColor: passFail === 'fail' ? '#fef2f2' : 'white' }}>
+                                style={{ borderColor: passFail === 'fail' ? '#ef4444' : '#d1d5db', backgroundColor: passFail === 'fail' ? '#fef2f2' : 'white' }}>
                                 <input
                                     type="radio"
                                     name="passFail"
@@ -825,7 +1133,7 @@ const PrintStickerForm = ({ assignment }) => {
                     </h3>
                     <p className="text-indigo-100 mt-2">Product labeling and identification</p>
                 </div>
-                
+
                 <form onSubmit={handlePrint} className="bg-white p-8 rounded-b-2xl shadow-xl space-y-6">
                     <div className="grid md:grid-cols-2 gap-6">
                         <div>
@@ -882,7 +1190,7 @@ const PrintStickerForm = ({ assignment }) => {
                         <div className="flex gap-4">
                             {['standard', 'high', 'premium'].map((quality) => (
                                 <label key={quality} className="flex items-center gap-2 px-4 py-2 border-2 rounded-lg cursor-pointer hover:bg-indigo-50 transition"
-                                       style={{ borderColor: printQuality === quality ? '#6366f1' : '#d1d5db', backgroundColor: printQuality === quality ? '#eef2ff' : 'white' }}>
+                                    style={{ borderColor: printQuality === quality ? '#6366f1' : '#d1d5db', backgroundColor: printQuality === quality ? '#eef2ff' : 'white' }}>
                                     <input
                                         type="radio"
                                         name="printQuality"
@@ -907,7 +1215,7 @@ const PrintStickerForm = ({ assignment }) => {
                                 <span className="text-sm font-bold text-indigo-600">{printProgress}%</span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                                <div 
+                                <div
                                     className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300"
                                     style={{ width: `${printProgress}%` }}
                                 />
@@ -946,13 +1254,13 @@ const PrintStickerForm = ({ assignment }) => {
 // ----------------------------------------------------------------------
 const renderAssignmentUI = (assignment) => {
     switch (assignment.taskTitle) {
-        
+
         case 'Add Barcode':
             return <AddBarcodeForm assignment={assignment} />;
         case 'Soldering':
             return <SolderingChecklist assignment={assignment} />;
         case 'Battery connection & Capacitor & add battery':
-            return <BatteryConnectionForm assignment={assignment} />;
+            return  <BatteryConnectionWorkstation assignment={assignment} />;;
         case 'Frimware update':
             return <FirmwareUpdateForm assignment={assignment} />;
         case 'QC check':
@@ -962,18 +1270,18 @@ const renderAssignmentUI = (assignment) => {
         default:
             return (
                 <div>
-            
-                <div className="p-10 text-center">
 
-                    <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-8">
-                        <Package size={48} className="mx-auto text-gray-400 mb-4" />
-                        <h3 className="text-xl font-semibold text-gray-700 mb-2">Standard Task View</h3>
-                        <p className="text-gray-500 mb-6">No custom UI defined for: "{assignment.taskTitle}"</p>
-                        <button className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition">
-                            Mark as Completed
-                        </button>
+                    <div className="p-10 text-center">
+
+                        <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-8">
+                            <Package size={48} className="mx-auto text-gray-400 mb-4" />
+                            <h3 className="text-xl font-semibold text-gray-700 mb-2">Standard Task View</h3>
+                            <p className="text-gray-500 mb-6">No custom UI defined for: "{assignment.taskTitle}"</p>
+                            <button className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition">
+                                Mark as Completed
+                            </button>
+                        </div>
                     </div>
-                </div>
                 </div>
             );
     }
@@ -983,66 +1291,66 @@ const renderAssignmentUI = (assignment) => {
 // ## Main Work Component
 // ----------------------------------------------------------------------
 function Work() {
-    const [employeeData, setEmployeeData] = useState(null); 
-    const [assignments, setAssignments] = useState([]); 
+    const [employeeData, setEmployeeData] = useState(null);
+    const [assignments, setAssignments] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [refreshTrigger, setRefreshTrigger] = useState(0); 
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
     const [selectedAssignment, setSelectedAssignment] = useState(null);
-    
- const fetchWorkList = async () => {
-    setIsLoading(true);
-    const token = localStorage.getItem("token");
 
-    try {
-        const response = await fetch(FETCH_EMPLOYEE_WORK_LIST_API, {
-            method: "GET",
-            headers: { Authorization: `Bearer ${token}` },
-        });
+    const fetchWorkList = async () => {
+        setIsLoading(true);
+        const token = localStorage.getItem("token");
 
-        if (!response.ok) {
-            throw new Error(`Failed to fetch work list: ${response.status}`);
-        }
+        try {
+            const response = await fetch(FETCH_EMPLOYEE_WORK_LIST_API, {
+                method: "GET",
+                headers: { Authorization: `Bearer ${token}` },
+            });
 
-        const data = await response.json();
+            if (!response.ok) {
+                throw new Error(`Failed to fetch work list: ${response.status}`);
+            }
 
-        // --- Correct handling of new response structure ---
-        if (data.emp) {
-            setEmployeeData(data.emp);
+            const data = await response.json();
 
-            if (Array.isArray(data.emp.assignWork)) {
-                const fetchedAssignments = data.emp.assignWork.map((assignment) => ({
-                    id: assignment._id,
-                    taskTitle: assignment.workTitel || "No Title",
-                    task: assignment.workDescription || "No Description",
-                    assignedDate: new Date(assignment.createdAt).toLocaleDateString(),
-                    status: assignment.status ? "Completed" : "Pending",
-                }));
+            // --- Correct handling of new response structure ---
+            if (data.emp) {
+                setEmployeeData(data.emp);
 
-                setAssignments(fetchedAssignments);
+                if (Array.isArray(data.emp.assignWork)) {
+                    const fetchedAssignments = data.emp.assignWork.map((assignment) => ({
+                        id: assignment._id,
+                        taskTitle: assignment.workTitel || "No Title",
+                        task: assignment.workDescription || "No Description",
+                        assignedDate: new Date(assignment.createdAt).toLocaleDateString(),
+                        status: assignment.status ? "Completed" : "Pending",
+                    }));
 
-                // Select first pending OR first assignment
-                const pendingAssignment = fetchedAssignments.find(a => a.status === "Pending");
-                setSelectedAssignment(pendingAssignment || fetchedAssignments[0]);
+                    setAssignments(fetchedAssignments);
+
+                    // Select first pending OR first assignment
+                    const pendingAssignment = fetchedAssignments.find(a => a.status === "Pending");
+                    setSelectedAssignment(pendingAssignment || fetchedAssignments[0]);
+                } else {
+                    setAssignments([]);
+                    setSelectedAssignment(null);
+                }
+
             } else {
+                setEmployeeData(null);
                 setAssignments([]);
                 setSelectedAssignment(null);
             }
 
-        } else {
-            setEmployeeData(null);
-            setAssignments([]);
-            setSelectedAssignment(null);
+        } catch (error) {
+            console.error("Error fetching assignments:", error);
+            toast.error(`Error loading work list: ${error.message}`, {
+                type: "error",
+            });
+        } finally {
+            setIsLoading(false);
         }
-
-    } catch (error) {
-        console.error("Error fetching assignments:", error);
-        toast.error(`Error loading work list: ${error.message}`, {
-            type: "error",
-        });
-    } finally {
-        setIsLoading(false);
-    }
-};
+    };
 
 
     useEffect(() => {
@@ -1056,7 +1364,7 @@ function Work() {
             default: return 'bg-gray-100 text-gray-800';
         }
     };
-    
+
     const getTaskIcon = (taskTitle) => {
         switch (taskTitle) {
             case 'Add Barcode': return <Package size={18} />;
@@ -1068,120 +1376,120 @@ function Work() {
             default: return <ClipboardList size={18} />;
         }
     };
-    
+
     const employeeName = employeeData?.empName || 'Employee';
 
     return (
         <>
-               <Navbar3/>
-       
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-            {/* Header */}
-            <header className="bg-white shadow-md border-b-2 border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-4xl font-extrabold text-gray-900 flex items-center gap-3">
-                                <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-2 rounded-xl">
-                                    <ClipboardList size={32} className="text-white" />
-                                </div>
-                                {employeeName}'s Work Dashboard
-                            </h1>
-                            <p className="text-gray-600 mt-2">Manage and track your assigned tasks</p>
-                        </div>
-                        
-                        <button
-                            onClick={() => setRefreshTrigger(prev => prev + 1)}
-                            className="flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white 
-                                       font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition duration-150 shadow-lg"
-                            disabled={isLoading}
-                        >
-                            <RefreshCw size={18} className={`mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                            {isLoading ? 'Loading...' : 'Refresh List'}
-                        </button>
-                    </div>
-                </div>
-            </header>
+            <Navbar3 />
 
-            {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    
-                    {/* LEFT: Assignment List */}
-                    <div className="lg:col-span-1">
-                        <div className="bg-white shadow-2xl rounded-2xl overflow-hidden sticky top-8">
-                            <div className="bg-gradient-to-r from-gray-700 to-gray-900 p-5 text-white">
-                                <h2 className="text-xl font-bold flex items-center gap-2">
-                                    <ClipboardList size={24} />
-                                    Assigned Tasks ({assignments.length})
-                                </h2>
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+                {/* Header */}
+                <header className="bg-white shadow-md border-b-2 border-gray-200">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h1 className="text-4xl font-extrabold text-gray-900 flex items-center gap-3">
+                                    <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-2 rounded-xl">
+                                        <ClipboardList size={32} className="text-white" />
+                                    </div>
+                                    {employeeName}'s Work Dashboard
+                                </h1>
+                                <p className="text-gray-600 mt-2">Manage and track your assigned tasks</p>
                             </div>
-                            <ul className="divide-y divide-gray-200 max-h-[calc(100vh-250px)] overflow-y-auto">
-                                {isLoading ? (
-                                    <li className="p-6 text-center text-gray-500">
-                                        <RefreshCw size={24} className="animate-spin mx-auto mb-2" />
-                                        Loading tasks...
-                                    </li>
-                                ) : assignments.length > 0 ? (
-                                    assignments.map((assignment) => (
-                                        <li 
-                                            key={assignment.id} 
-                                            onClick={() => setSelectedAssignment(assignment)}
-                                            className={`p-5 cursor-pointer transition-all duration-200 
-                                                        ${selectedAssignment?.id === assignment.id 
-                                                            ? 'bg-gradient-to-r from-indigo-50 to-purple-50 border-r-4 border-indigo-600 shadow-inner' 
-                                                            : 'hover:bg-gray-50 hover:shadow-sm'}`}
-                                        >
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div className="flex items-center gap-2">
-                                                    <div className={`${selectedAssignment?.id === assignment.id ? 'text-indigo-600' : 'text-gray-500'}`}>
-                                                        {getTaskIcon(assignment.taskTitle)}
-                                                    </div>
-                                                    <p className="text-sm font-bold text-gray-900">{assignment.taskTitle}</p>
-                                                </div>
-                                                <span className={`px-3 py-1 text-xs font-bold rounded-full ${getStatusColor(assignment.status)}`}>
-                                                    {assignment.status}
-                                                </span>
-                                            </div>
-                                            <p className="text-xs text-gray-600 ml-6">{assignment.task}</p>
-                                            <p className="text-xs text-gray-400 mt-2 ml-6 flex items-center gap-1">
-                                                <Clock size={12} />
-                                                Assigned: {assignment.assignedDate}
-                                            </p>
-                                        </li>
-                                    ))
-                                ) : (
-                                    <li className="p-10 text-center text-gray-500">
-                                        <ClipboardList size={48} className="mx-auto mb-3 text-gray-300" />
-                                        <p className="font-semibold">No tasks currently assigned</p>
-                                        <p className="text-sm mt-1">Check back later for new assignments</p>
-                                    </li>
-                                )}
-                            </ul>
+
+                            <button
+                                onClick={() => setRefreshTrigger(prev => prev + 1)}
+                                className="flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white 
+                                       font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition duration-150 shadow-lg"
+                                disabled={isLoading}
+                            >
+                                <RefreshCw size={18} className={`mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                                {isLoading ? 'Loading...' : 'Refresh List'}
+                            </button>
                         </div>
                     </div>
+                </header>
 
-                    {/* RIGHT: Task Details & Forms */}
-                    <div className="lg:col-span-2">
-                        <div className="bg-white shadow-2xl rounded-2xl overflow-hidden min-h-[600px]">
-                            {selectedAssignment ? (
-                                <>
-                                    {/* Header moved inside renderAssignmentUI to be part of the form's layout */}
-                                    {renderAssignmentUI(selectedAssignment)}
-                                </>
-                            ) : (
-                                <div className="p-20 text-center text-gray-500">
-                                    <ClipboardList size={64} className="mx-auto mb-4 text-gray-300" />
-                                    <h3 className="text-2xl font-bold text-gray-700 mb-2">Select a Task</h3>
-                                    <p className="text-gray-500">Choose a task from the list to view details and begin work</p>
+                {/* Main Content */}
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+                        {/* LEFT: Assignment List */}
+                        <div className="lg:col-span-1">
+                            <div className="bg-white shadow-2xl rounded-2xl overflow-hidden sticky top-8">
+                                <div className="bg-gradient-to-r from-gray-700 to-gray-900 p-5 text-white">
+                                    <h2 className="text-xl font-bold flex items-center gap-2">
+                                        <ClipboardList size={24} />
+                                        Assigned Tasks ({assignments.length})
+                                    </h2>
                                 </div>
-                            )}
+                                <ul className="divide-y divide-gray-200 max-h-[calc(100vh-250px)] overflow-y-auto">
+                                    {isLoading ? (
+                                        <li className="p-6 text-center text-gray-500">
+                                            <RefreshCw size={24} className="animate-spin mx-auto mb-2" />
+                                            Loading tasks...
+                                        </li>
+                                    ) : assignments.length > 0 ? (
+                                        assignments.map((assignment) => (
+                                            <li
+                                                key={assignment.id}
+                                                onClick={() => setSelectedAssignment(assignment)}
+                                                className={`p-5 cursor-pointer transition-all duration-200 
+                                                        ${selectedAssignment?.id === assignment.id
+                                                        ? 'bg-gradient-to-r from-indigo-50 to-purple-50 border-r-4 border-indigo-600 shadow-inner'
+                                                        : 'hover:bg-gray-50 hover:shadow-sm'}`}
+                                            >
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className={`${selectedAssignment?.id === assignment.id ? 'text-indigo-600' : 'text-gray-500'}`}>
+                                                            {getTaskIcon(assignment.taskTitle)}
+                                                        </div>
+                                                        <p className="text-sm font-bold text-gray-900">{assignment.taskTitle}</p>
+                                                    </div>
+                                                    <span className={`px-3 py-1 text-xs font-bold rounded-full ${getStatusColor(assignment.status)}`}>
+                                                        {assignment.status}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-gray-600 ml-6">{assignment.task}</p>
+                                                <p className="text-xs text-gray-400 mt-2 ml-6 flex items-center gap-1">
+                                                    <Clock size={12} />
+                                                    Assigned: {assignment.assignedDate}
+                                                </p>
+                                            </li>
+                                        ))
+                                    ) : (
+                                        <li className="p-10 text-center text-gray-500">
+                                            <ClipboardList size={48} className="mx-auto mb-3 text-gray-300" />
+                                            <p className="font-semibold">No tasks currently assigned</p>
+                                            <p className="text-sm mt-1">Check back later for new assignments</p>
+                                        </li>
+                                    )}
+                                </ul>
+                            </div>
+                        </div>
+
+                        {/* RIGHT: Task Details & Forms */}
+                        <div className="lg:col-span-2">
+                            <div className="bg-white shadow-2xl rounded-2xl overflow-hidden min-h-[600px]">
+                                {selectedAssignment ? (
+                                    <>
+                                        {/* Header moved inside renderAssignmentUI to be part of the form's layout */}
+                                        {renderAssignmentUI(selectedAssignment)}
+                                    </>
+                                ) : (
+                                    <div className="p-20 text-center text-gray-500">
+                                        <ClipboardList size={64} className="mx-auto mb-4 text-gray-300" />
+                                        <h3 className="text-2xl font-bold text-gray-700 mb-2">Select a Task</h3>
+                                        <p className="text-gray-500">Choose a task from the list to view details and begin work</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-         </>
+        </>
     );
 }
 
