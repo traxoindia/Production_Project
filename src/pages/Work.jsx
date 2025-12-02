@@ -196,22 +196,27 @@ const AddBarcodeForm = ({ assignment }) => {
                         </div>
 
                         {/* IMEI INPUT SECTION */}
-                        <div className="grid grid-cols-1 gap-6">
-                            <div className="md:col-span-1">
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    IMEI NO <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    value={imeiNo}
-                                    onChange={(e) => setImeiNo(e.target.value)}
-                                    placeholder="Enter 15-digit IMEI number"
-                                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                                    required
-                                    disabled={isLoading}
-                                />
-                            </div>
-                        </div>
+                       <div className="md:col-span-1">
+    <label className="block text-sm font-semibold text-gray-700 mb-2">
+        IMEI NO <span className="text-red-500">*</span>
+    </label>
+    <input
+        type="text"
+        value={imeiNo}
+        // MODIFICATION HERE: Process the input before setting the state
+        onChange={(e) => {
+            const rawInput = e.target.value.trim();
+            // Truncate the input to a maximum of 15 characters
+            // This is especially useful for handling long strings from a scanner.
+            const truncatedImei = rawInput.substring(0, 15);
+            setImeiNo(truncatedImei);
+        }}
+        placeholder="Enter 15-digit IMEI number"
+        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+        required
+        disabled={isLoading}
+    />
+</div>
 
                         <div className="pt-4 flex justify-end gap-4 border-t">
                             <button
