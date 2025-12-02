@@ -26,17 +26,33 @@ const generateDateCode = () => {
 };
 
 // NOTE: These helper functions must be defined outside the component (usually in Work.jsx)
-const generateBatchCode = () => {
+// Utility to format date as DDMMYYYY
+const formatDateDDMMYYYY = () => {
     const today = new Date();
-    const dateString = today.toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
-    return `BATCH-${dateString}`;
+    const day = String(today.getDate()).padStart(2, '0');
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const year = today.getFullYear();
+
+    return `${day}${month}${year}`; // DDMMYYYY
 };
 
-const generateLotCode = () => {
-    const today = new Date();
-    const dateString = today.toISOString().slice(0, 10).replace(/-/g, '');
-    const uniquePart = Math.floor(Math.random() * 900) + 100;
-    return `LOT-${dateString}-${uniquePart}`;
+// Utility to generate running numeric code like VLT000001
+const generateVLTCode = (num = 1) => {
+    return `VLT${String(num).padStart(6, '0')}`;
+};
+
+// Generate LOT NO
+const generateLotCode = (counter = 1) => {
+    const dateString = formatDateDDMMYYYY();
+    const vltCode = generateVLTCode(counter);
+    return `TIA/LOT/${dateString}/${vltCode}`;
+};
+
+// Generate BATCH NO
+const generateBatchCode = (counter = 1) => {
+    const dateString = formatDateDDMMYYYY();
+    const vltCode = generateVLTCode(counter);
+    return `TIA/BATCH/${dateString}/${vltCode}`;
 };
 
 // --- API Endpoints ---
