@@ -186,7 +186,7 @@ const BatteryConnectionForm = ({ imeiEntry, onStatusChange }) => {
           {isCompletedLocally ? (
             <span className="px-6 py-3 text-sm font-bold text-green-700 border border-green-300 rounded-lg">
               Passed
-            </span> // UPDATED TEXT
+            </span> 
           ) : (
             <button
               type="submit"
@@ -219,6 +219,9 @@ const BatteryConnectionWorkstation = ({ assignment }) => {
   
   const [verifyingImeis, setVerifyingImeis] = useState({}); 
 
+  // >>> NEW STATE FOR FILTERING <<<
+  const [filterImei, setFilterImei] = useState(''); 
+
   const fetchIMEIList = async () => {
     setListLoading(true);
 
@@ -243,7 +246,6 @@ const BatteryConnectionWorkstation = ({ assignment }) => {
           _id: imeiId,
           imeiNo: item.barcodeImeiId?.imeiNo || "N/A",
           isReady: item.status_Soldering === true, 
-          // *** CRITICAL CHANGE HERE: Use the new batteryConnectionStatus field ***
           isComplete: item.batteryConnectionStatus === true, 
         };
 
@@ -351,6 +353,25 @@ const BatteryConnectionWorkstation = ({ assignment }) => {
     }
   };
 
+  // >>> FILTERING LOGIC <<<
+  const handleFilterChange = (e) => {
+    // 1. Strip non-digits
+    const value = e.target.value.replace(/[^0-9]/g, ''); 
+    // 2. Limit to 15 digits
+    setFilterImei(value.slice(0, 15)); 
+    // Optionally close the accordion when filtering starts
+    if (value.length > 0) {
+        setActiveImeiId(null);
+    }
+  };
+
+  // Filter the data based on the current input value
+  const filteredImeis = imeiData.filter(imei => 
+      imei.imeiNo && imei.imeiNo.includes(filterImei)
+  );
+  // >>> END FILTERING LOGIC <<<
+
+
   return (
     <div className="p-4 sm:p-8">
       <div className="max-w-5xl mx-auto">
@@ -362,32 +383,51 @@ const BatteryConnectionWorkstation = ({ assignment }) => {
         </div>
 
         <div className="bg-white p-8 rounded-b-2xl shadow-xl space-y-6">
+          
+          {/* NEW: IMEI Filter Input Field */}
+          <div className="mb-6">
+              <label htmlFor="imei-filter" className="block text-sm font-medium text-gray-700 mb-2">
+                  Filter by **IMEI Number** (15 Digits) 🔎
+              </label>
+              <input
+                  type="text"
+                  id="imei-filter"
+                  value={filterImei}
+                  onChange={handleFilterChange}
+                  placeholder="Enter 15-digit IMEI"
+                  maxLength={15}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition duration-150"
+              />
+          </div>
+          {/* END NEW IMEI Filter Input Field */}
+
           {listLoading ? (
             <div className="text-center py-10">Loading IMEI list...</div>
+          ) : filteredImeis.length === 0 ? ( // Check filteredImeis length
+            <div className="text-center py-10 text-gray-500">
+                {filterImei ? `No IMEI found matching "${filterImei}".` : 'No units found requiring battery connection.'}
+            </div>
           ) : (
             <div className="space-y-3">
-              {imeiData.map((imei) => {
+              {filteredImeis.map((imei) => { // Map over filteredImeis
                 const id = imei._id;
                 const isOpen = activeImeiId === id;
                 const isImeiVerifying = verifyingImeis[id] === true; 
-                const isBatteryPassed = imei.isComplete; // Use the updated flag
+                const isBatteryPassed = imei.isComplete; 
 
                 let headerClass = "bg-gray-50";
                 let icon = <Clock className="text-gray-500" />;
                 let statusText = "Soldering Pending";
 
                 if (isBatteryPassed) {
-                    // State when the battery connection is complete/passed
                     headerClass = "bg-green-100 cursor-default";
                     icon = <CheckCircle className="text-green-700" />;
-                    statusText = "Passed"; // UPDATED TEXT
+                    statusText = "Passed"; 
                 } else if (imei.isReady) {
-                    // State when ready for battery connection
                     headerClass = "bg-yellow-50 hover:bg-yellow-100 cursor-pointer";
                     icon = <Lightbulb className="text-yellow-600" />;
                     statusText = "Ready for Battery Connection";
                 } else {
-                    // State when still waiting for soldering verification
                     headerClass = "bg-red-50 cursor-default";
                     icon = <XCircle className="text-red-700" />;
                 }

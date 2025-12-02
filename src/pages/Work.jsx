@@ -4,6 +4,7 @@ import Navbar3 from './Navbar3';
 import { toast } from 'react-toastify'; // Use standard toast
 // Inside Work.jsx imports
 import BatteryConnectionWorkstation from './BatteryConnectionWorkstation'; // Adjust path as needed
+import SolderingChecklist from './SolderingChecklist';
 
 // --- API Endpoint ---
 const FETCH_EMPLOYEE_WORK_LIST_API = "https://vanaras.onrender.com/api/v1/superadmin/FetchLoginEmployeeWorkList";
@@ -212,27 +213,27 @@ const AddBarcodeForm = ({ assignment }) => {
                         </div>
 
                         {/* IMEI INPUT SECTION */}
-                       <div className="md:col-span-1">
-    <label className="block text-sm font-semibold text-gray-700 mb-2">
-        IMEI NO <span className="text-red-500">*</span>
-    </label>
-    <input
-        type="text"
-        value={imeiNo}
-        // MODIFICATION HERE: Process the input before setting the state
-        onChange={(e) => {
-            const rawInput = e.target.value.trim();
-            // Truncate the input to a maximum of 15 characters
-            // This is especially useful for handling long strings from a scanner.
-            const truncatedImei = rawInput.substring(0, 15);
-            setImeiNo(truncatedImei);
-        }}
-        placeholder="Enter 15-digit IMEI number"
-        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-        required
-        disabled={isLoading}
-    />
-</div>
+                        <div className="md:col-span-1">
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                IMEI NO <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={imeiNo}
+                                // MODIFICATION HERE: Process the input before setting the state
+                                onChange={(e) => {
+                                    const rawInput = e.target.value.trim();
+                                    // Truncate the input to a maximum of 15 characters
+                                    // This is especially useful for handling long strings from a scanner.
+                                    const truncatedImei = rawInput.substring(0, 15);
+                                    setImeiNo(truncatedImei);
+                                }}
+                                placeholder="Enter 15-digit IMEI number"
+                                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                                required
+                                disabled={isLoading}
+                            />
+                        </div>
 
                         <div className="pt-4 flex justify-end gap-4 border-t">
                             <button
@@ -454,390 +455,6 @@ const IndividualChecklist = ({ imeiEntry, onStatusChange }) => {
         </div>
     );
 };
-const SolderingChecklist = ({ assignment }) => {
-    const [imeiData, setImeiData] = useState([]);
-    const [listLoading, setListLoading] = useState(true);
-    const [activeImeiId, setActiveImeiId] = useState(null); // The currently open accordion item
-    const [completedIds, setCompletedIds] = useState(new Set());
-    const [refreshTrigger, setRefreshTrigger] = useState(0);
-
-    const [unlockedImeiId, setUnlockedImeiId] = useState(null);
-    const [verifyingId, setVerifyingId] = useState(null);
-
-    const FETCH_IMEI_LIST_API = "https://vanaras.onrender.com/api/v1/superadmin/fetchAllBarCodeIMEINo";
-    const VERIFY_IMEI_AGAIN_API = "https://vanaras.onrender.com/api/v1/superadmin/veriFyImeiNoAgain";
-
-    const fetchIMEIList = async () => {
-        setListLoading(true);
-        const token = localStorage.getItem("token");
-
-        try {
-            const response = await fetch(FETCH_IMEI_LIST_API, {
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${token}` },
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to fetch IMEI list: ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            const allImeis = data.allBarCodeIMEINo || data.allBarCode || [];
-            let firstOpenId = null;
-
-            const fetchedImeis = allImeis.map(imei => {
-                // ✅ UPDATED: Use the new solderingStatus property for permanent completion
-                const isComplete = imei.solderingStatus === true;
-
-                // 1. Check if this item should be the initial open accordion (if status_ONE is true and NOT already completed)
-                if (imei.status_ONE === true && !isComplete && !firstOpenId) {
-                    firstOpenId = imei._id;
-                }
-
-                return {
-                    ...imei,
-                    assignmentId: assignment.id,
-                    isComplete: isComplete, // Final completion status
-                    hasStatusOne: imei.status_ONE === true, // Status for initial unlock
-                };
-            });
-
-            setImeiData(fetchedImeis);
-
-            // 2. Set the active accordion ID and unlock access for the unit with status_ONE
-            if (firstOpenId) {
-                setActiveImeiId(firstOpenId);
-                setUnlockedImeiId(firstOpenId);
-            }
-
-        } catch (error) {
-            console.error("Error fetching IMEI list:", error);
-            toast.error("Failed to load IMEI list history.", { position: "bottom-center" });
-        } finally {
-            setListLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchIMEIList();
-    }, [refreshTrigger, completedIds]);
-
-    const handleImeiComplete = (imeiId) => {
-        // Since isComplete is now governed by the API's solderingStatus, we just need to refresh
-        // the list and clear local states after a successful submission from IndividualChecklist.
-        setUnlockedImeiId(null);
-        setActiveImeiId(null);
-        setRefreshTrigger(prev => prev + 1);
-    };
-
-    // --- Verification Click Logic (Unchanged logic, ensures status_ONE is set) ---
-    const handleVerificationClick = async (imeiEntry) => {
-        if (imeiEntry.isComplete) {
-            toast.warn(`IMEI ${imeiEntry.imeiNo} is already completed.`, { position: "top-center" });
-            return;
-        }
-
-        if (imeiEntry.hasStatusOne) {
-            toast.info(`IMEI ${imeiEntry.imeiNo} is ready. Opening checklist.`, { position: "top-center" });
-            setUnlockedImeiId(imeiEntry._id);
-            setActiveImeiId(imeiEntry._id);
-            return;
-        }
-
-        setVerifyingId(imeiEntry._id);
-        const token = localStorage.getItem("token");
-
-        try {
-            const payload = { imeiNo: imeiEntry.imeiNo };
-            const response = await fetch(VERIFY_IMEI_AGAIN_API, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(payload)
-            });
-
-            const data = await response.json();
-
-            if (!response.ok || !data.success) {
-                const errorMessage = data.message || `Verification failed for ${imeiEntry.imeiNo}.`;
-                throw new Error(errorMessage);
-            }
-
-            toast.success(`IMEI ${imeiEntry.imeiNo} verified. Checklist unlocked.`, { position: "top-center" });
-            setUnlockedImeiId(imeiEntry._id);
-            setActiveImeiId(imeiEntry._id);
-            setRefreshTrigger(prev => prev + 1);
-
-        } catch (error) {
-            console.error("Error during IMEI verification:", error);
-            toast.error(`Verification Failed: ${error.message}`, { position: "top-center" });
-            setUnlockedImeiId(null);
-        } finally {
-            setVerifyingId(null);
-        }
-    };
-    // -------------------------------
-
-    const isImeiAccessible = (imeiId) => {
-        // Accessible if it has status_ONE OR if the user just verified it locally
-        return imeiData.find(i => i._id === imeiId)?.hasStatusOne || imeiId === unlockedImeiId;
-    };
-
-    const handleAccordionToggle = (imeiId) => {
-        const imei = imeiData.find(i => i._id === imeiId);
-        // Only allow toggle if the item is unlocked/has status_ONE OR is already completed
-        if (imei.isComplete || isImeiAccessible(imeiId)) {
-            setActiveImeiId(activeImeiId === imeiId ? null : imeiId);
-        }
-    };
-
-    return (
-        <div className="p-4 sm:p-8">
-            <div className="max-w-5xl mx-auto">
-                <div className="bg-gradient-to-r from-red-600 to-orange-700 text-white p-6 rounded-t-2xl">
-                    <h3 className="text-2xl font-bold flex items-center gap-3">
-                        <Zap size={28} />
-                        Soldering Workstation
-                    </h3>
-                    <p className="text-red-100 mt-2">17-Point QC for multiple units assigned to this task.</p>
-                </div>
-
-                <div className="bg-white p-8 rounded-b-2xl shadow-xl space-y-6">
-
-                    <h4 className="text-xl font-bold text-gray-700">Units Requiring Verification</h4>
-
-                    {listLoading ? (
-                        <div className="text-center py-10">Loading IMEI list...</div>
-                    ) : imeiData.length === 0 ? (
-                        <div className="text-center py-10 text-gray-500">No units found requiring soldering for this assignment.</div>
-                    ) : (
-                        <div className="space-y-3">
-                            {imeiData.map((imeiEntry) => {
-                                const isCompleted = imeiEntry.isComplete;
-                                const hasStatusOne = imeiEntry.hasStatusOne;
-                                const isUnlocked = isImeiAccessible(imeiEntry._id);
-                                const isActive = imeiEntry._id === activeImeiId;
-                                const isProcessing = verifyingId === imeiEntry._id;
-                                const isButtonDisabled = isProcessing || isCompleted;
-
-                                return (
-                                    <div key={imeiEntry._id} className="border border-gray-200 rounded-lg overflow-hidden">
-                                        {/* Accordion Header */}
-                                        <div
-                                            className={`w-full flex justify-between items-center p-3 text-left transition-all duration-300 
-                                            ${isCompleted ? 'bg-green-100 text-green-800' : 'bg-gray-50'}`}
-                                        >
-
-                                            <div className="flex items-center gap-3">
-                                                {isCompleted ? <CheckCircle size={20} className="text-green-700" /> : <Clock size={20} className="text-gray-500" />}
-                                                <span className="font-mono text-lg text-gray-800">{imeiEntry.imeiNo}</span>
-                                            </div>
-
-                                            {/* Action Button / Status Display */}
-                                            <div>
-                                                {isCompleted ? (
-                                                    <span className="font-bold text-green-700">QC Passed</span>
-                                                ) : isUnlocked || hasStatusOne ? (
-                                                    <button
-                                                        onClick={() => handleAccordionToggle(imeiEntry._id)}
-                                                        className={`px-4 py-1 text-sm font-semibold rounded-lg transition-colors ${isActive ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-indigo-500 text-white hover:bg-indigo-600'}`}
-                                                    >
-                                                        {isActive ? 'Hide Checklist' : 'Show Checklist'}
-                                                        <ChevronDown size={18} className={`inline ml-2 transform transition-transform ${isActive ? 'rotate-180' : 'rotate-0'}`} />
-                                                    </button>
-                                                ) : (
-                                                    // Verify Button (Only shown if status_ONE is false)
-                                                    <button
-                                                        onClick={() => handleVerificationClick(imeiEntry)}
-                                                        className="px-4 py-1 text-sm bg-yellow-500 text-white font-semibold rounded-lg hover:bg-yellow-600 disabled:opacity-50 flex items-center gap-2"
-                                                        disabled={isButtonDisabled}
-                                                    >
-                                                        {isProcessing ? <RefreshCw size={14} className="animate-spin" /> : 'Verify & Start'}
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Accordion Content */}
-                                        {isActive && (isUnlocked || hasStatusOne) && !isCompleted && (
-                                            <IndividualChecklist
-                                                imeiEntry={imeiEntry}
-                                                onStatusChange={handleImeiComplete}
-                                            />
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-};
-
-
-
-
-
-
-// ----------------------------------------------------------------------
-// ## 3. Battery Connection & Capacitor
-// ----------------------------------------------------------------------
-// const BatteryConnectionForm = ({ assignment }) => {
-//     const [batteryType, setBatteryType] = useState('');
-//     const [voltage, setVoltage] = useState('');
-//     const [capacitorValue, setCapacitorValue] = useState('');
-//     const [connectionChecks, setConnectionChecks] = useState({
-//         polarity: false,
-//         isolation: false,
-//         capacitorPlacement: false,
-//         voltageTest: false
-//     });
-//     const [isLoading, setIsLoading] = useState(false);
-
-//     const handleCheckChange = (key) => {
-//         setConnectionChecks(prev => ({ ...prev, [key]: !prev[key] }));
-//     };
-
-//     const allChecksComplete = Object.values(connectionChecks).every(Boolean);
-
-//     const handleSubmit = (e) => {
-//         e.preventDefault();
-//         if (!batteryType || !voltage || !capacitorValue || !allChecksComplete) {
-//             alert('Please complete all fields and checks');
-//             return;
-//         }
-//         setIsLoading(true);
-//         console.log("Battery Connection Data:", { batteryType, voltage, capacitorValue, connectionChecks });
-
-//         setTimeout(() => {
-//             alert('Battery connection completed successfully!');
-//             setIsLoading(false);
-//         }, 1500);
-//     };
-
-//     return (
-//         <div className="p-4 sm:p-8">
-//             <div className="max-w-3xl mx-auto">
-//                 <div className="bg-gradient-to-r from-green-500 to-teal-600 text-white p-6 rounded-t-2xl">
-//                     <h3 className="text-2xl font-bold flex items-center gap-3">
-//                         <BatteryCharging size={28} />
-//                         Battery Connection & Capacitor Installation
-//                     </h3>
-//                     <p className="text-green-100 mt-2">Power system assembly and verification</p>
-//                 </div>
-
-//                 <form onSubmit={handleSubmit} className="bg-white p-8 rounded-b-2xl shadow-xl space-y-6">
-//                     <div className="grid md:grid-cols-2 gap-6">
-//                         <div>
-//                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-//                                 Battery Type <span className="text-red-500">*</span>
-//                             </label>
-//                             <select
-//                                 value={batteryType}
-//                                 onChange={(e) => setBatteryType(e.target.value)}
-//                                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none"
-//                                 required
-//                             >
-//                                 <option value="">Select battery type</option>
-//                                 <option value="Li-Ion">Lithium-Ion</option>
-//                                 <option value="Li-Po">Lithium-Polymer</option>
-//                                 <option value="NiMH">Nickel-Metal Hydride</option>
-//                                 <option value="Alkaline">Alkaline</option>
-//                             </select>
-//                         </div>
-
-//                         <div>
-//                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-//                                 Voltage (V) <span className="text-red-500">*</span>
-//                             </label>
-//                             <input
-//                                 type="number"
-//                                 step="0.1"
-//                                 value={voltage}
-//                                 onChange={(e) => setVoltage(e.target.value)}
-//                                 placeholder="e.g., 3.7"
-//                                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none"
-//                                 required
-//                             />
-//                         </div>
-//                     </div>
-
-//                     <div>
-//                         <label className="block text-sm font-semibold text-gray-700 mb-2">
-//                             Capacitor Value (µF) <span className="text-red-500">*</span>
-//                         </label>
-//                         <input
-//                             type="number"
-//                             value={capacitorValue}
-//                             onChange={(e) => setCapacitorValue(e.target.value)}
-//                             placeholder="e.g., 100"
-//                             className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none"
-//                             required
-//                         />
-//                     </div>
-
-//                     <div className="bg-green-50 border-2 border-green-200 p-5 rounded-xl">
-//                         <h4 className="font-semibold text-gray-800 mb-4">Safety Verification Checklist</h4>
-//                         <div className="space-y-3">
-//                             {Object.entries({
-//                                 polarity: 'Battery Polarity Verified (+/-)',
-//                                 isolation: 'Electrical Isolation Confirmed',
-//                                 capacitorPlacement: 'Capacitor Correctly Positioned',
-//                                 voltageTest: 'Voltage Output Tested'
-//                             }).map(([key, label]) => (
-//                                 <div key={key} className="flex items-center gap-3">
-//                                     <input
-//                                         type="checkbox"
-//                                         checked={connectionChecks[key]}
-//                                         onChange={() => handleCheckChange(key)}
-//                                         id={key}
-//                                         className="h-5 w-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
-//                                     />
-//                                     <label htmlFor={key} className="text-sm text-gray-700 font-medium cursor-pointer">
-//                                         {label}
-//                                     </label>
-//                                 </div>
-//                             ))}
-//                         </div>
-//                     </div>
-
-//                     <div className="pt-4 flex justify-end">
-//                         <button
-//                             type="submit"
-//                             className="px-8 py-3 bg-gradient-to-r from-green-600 to-teal-600 text-white font-semibold rounded-lg hover:from-green-700 hover:to-teal-700 disabled:opacity-50 flex items-center gap-2 transition shadow-lg"
-//                             disabled={isLoading || !allChecksComplete}
-//                         >
-//                             {isLoading ? 'Saving...' : <><CheckCircle size={20} /> Complete Installation</>}
-//                         </button>
-//                     </div>
-//                 </form>
-//             </div>
-//         </div>
-//     );
-// };
-
-
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // ----------------------------------------------------------------------
 // ## 4. Firmware Update
@@ -1281,7 +898,7 @@ const renderAssignmentUI = (assignment) => {
         case 'Soldering':
             return <SolderingChecklist assignment={assignment} />;
         case 'Battery connection & Capacitor & add battery':
-            return  <BatteryConnectionWorkstation assignment={assignment} />;;
+            return <BatteryConnectionWorkstation assignment={assignment} />;;
         case 'Frimware update':
             return <FirmwareUpdateForm assignment={assignment} />;
         case 'QC check':
