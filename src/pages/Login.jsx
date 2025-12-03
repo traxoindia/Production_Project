@@ -291,7 +291,7 @@ function Login() {
                             {/* Login Button */}
                             <button
                                 type="submit" // Set type to submit for form handling
-                                className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-indigo-500/50 transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
+                                className="w-full py-4 bg-gradient-to-br from-[#ffdf0f]  to-[#000000] text-white rounded-xl font-semibold shadow-lg hover:shadow-indigo-500/50 transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:transform-none"
                                 disabled={loading || !email || !password}
                             >
                                 {loading ? (
