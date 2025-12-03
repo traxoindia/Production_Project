@@ -5,6 +5,7 @@ import { toast } from 'react-toastify'; // Use standard toast
 // Inside Work.jsx imports
 import BatteryConnectionWorkstation from './BatteryConnectionWorkstation'; // Adjust path as needed
 import SolderingChecklist from './SolderingChecklist';
+import FirmwareUpdateWorkstation from './FirmwareUpdateWorkstation';
 
 // --- API Endpoint ---
 const FETCH_EMPLOYEE_WORK_LIST_API = "https://vanaras.onrender.com/api/v1/superadmin/FetchLoginEmployeeWorkList";
@@ -900,7 +901,7 @@ const renderAssignmentUI = (assignment) => {
         case 'Battery connection & Capacitor & add battery':
             return <BatteryConnectionWorkstation assignment={assignment} />;;
         case 'Frimware update':
-            return <FirmwareUpdateForm assignment={assignment} />;
+            return <FirmwareUpdateWorkstation assignment={assignment} />;
         case 'QC check':
             return <QCCheckForm assignment={assignment} />;
         case 'Print Sticker':
