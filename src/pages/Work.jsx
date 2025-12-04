@@ -6,7 +6,8 @@ import { toast } from 'react-toastify'; // Use standard toast
 import BatteryConnectionWorkstation from './BatteryConnectionWorkstation'; // Adjust path as needed
 import SolderingChecklist from './SolderingChecklist';
 import FirmwareUpdateWorkstation from './FirmwareUpdateWorkstation';
-
+import PrintStickerForm from './StickerApp'
+import QCProbeWorkstation from './QCProbeWorkstation';
 // --- API Endpoint ---
 const FETCH_EMPLOYEE_WORK_LIST_API = "https://vanaras.onrender.com/api/v1/superadmin/FetchLoginEmployeeWorkList";
 
@@ -581,350 +582,317 @@ const FirmwareUpdateForm = ({ assignment }) => {
 // ----------------------------------------------------------------------
 // ## 5. QC Check
 // ----------------------------------------------------------------------
-const QCCheckForm = ({ assignment }) => {
-    const [qcChecks, setQCChecks] = useState({
-        visualInspection: false,
-        functionalTest: false,
-        dimensionalCheck: false,
-        electricalTest: false,
-        safetyCompliance: false,
-        packagingCheck: false
-    });
-    const [defectsFound, setDefectsFound] = useState('');
-    const [qcNotes, setQCNotes] = useState('');
-    const [passFail, setPassFail] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+// const QCCheckForm = ({ assignment }) => {
+//     const [qcChecks, setQCChecks] = useState({
+//         visualInspection: false,
+//         functionalTest: false,
+//         dimensionalCheck: false,
+//         electricalTest: false,
+//         safetyCompliance: false,
+//         packagingCheck: false
+//     });
+//     const [defectsFound, setDefectsFound] = useState('');
+//     const [qcNotes, setQCNotes] = useState('');
+//     const [passFail, setPassFail] = useState('');
+//     const [isLoading, setIsLoading] = useState(false);
 
-    const handleCheckChange = (key) => {
-        setQCChecks(prev => ({ ...prev, [key]: !prev[key] }));
-    };
+//     const handleCheckChange = (key) => {
+//         setQCChecks(prev => ({ ...prev, [key]: !prev[key] }));
+//     };
 
-    const allChecksComplete = Object.values(qcChecks).every(Boolean);
+//     const allChecksComplete = Object.values(qcChecks).every(Boolean);
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (!allChecksComplete || !passFail) {
-            alert('Please complete all checks and mark Pass/Fail');
-            return;
-        }
-        setIsLoading(true);
-        console.log("QC Check Data:", { qcChecks, defectsFound, qcNotes, passFail });
+//     const handleSubmit = (e) => {
+//         e.preventDefault();
+//         if (!allChecksComplete || !passFail) {
+//             alert('Please complete all checks and mark Pass/Fail');
+//             return;
+//         }
+//         setIsLoading(true);
+//         console.log("QC Check Data:", { qcChecks, defectsFound, qcNotes, passFail });
 
-        setTimeout(() => {
-            alert('QC check completed successfully!');
-            setIsLoading(false);
-        }, 1500);
-    };
+//         setTimeout(() => {
+//             alert('QC check completed successfully!');
+//             setIsLoading(false);
+//         }, 1500);
+//     };
 
-    return (
-        <div className="p-4 sm:p-8">
-            <div className="max-w-3xl mx-auto">
-                <div className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white p-6 rounded-t-2xl">
-                    <h3 className="text-2xl font-bold flex items-center gap-3">
-                        <CheckCircle size={28} />
-                        Quality Control Inspection
-                    </h3>
-                    <p className="text-cyan-100 mt-2">Final product quality assurance verification</p>
-                </div>
+//     return (
+//         <div className="p-4 sm:p-8">
+//             <div className="max-w-3xl mx-auto">
+//                 <div className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white p-6 rounded-t-2xl">
+//                     <h3 className="text-2xl font-bold flex items-center gap-3">
+//                         <CheckCircle size={28} />
+//                         Quality Control Inspection
+//                     </h3>
+//                     <p className="text-cyan-100 mt-2">Final product quality assurance verification</p>
+//                 </div>
 
-                <form onSubmit={handleSubmit} className="bg-white p-8 rounded-b-2xl shadow-xl space-y-6">
-                    <div className="bg-cyan-50 border-2 border-cyan-200 p-5 rounded-xl">
-                        <h4 className="font-semibold text-gray-800 mb-4">QC Inspection Checklist</h4>
-                        <div className="space-y-3">
-                            {Object.entries({
-                                visualInspection: 'Visual Inspection (No scratches/damages)',
-                                functionalTest: 'Functional Testing (All features working)',
-                                dimensionalCheck: 'Dimensional Accuracy Check',
-                                electricalTest: 'Electrical Performance Test',
-                                safetyCompliance: 'Safety Standards Compliance',
-                                packagingCheck: 'Packaging & Labeling Verification'
-                            }).map(([key, label]) => (
-                                <div key={key} className="flex items-center gap-3 bg-white p-3 rounded-lg border border-cyan-200">
-                                    <input
-                                        type="checkbox"
-                                        checked={qcChecks[key]}
-                                        onChange={() => handleCheckChange(key)}
-                                        id={key}
-                                        className="h-5 w-5 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500"
-                                    />
-                                    <label htmlFor={key} className="text-sm text-gray-700 font-medium cursor-pointer">
-                                        {label}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+//                 <form onSubmit={handleSubmit} className="bg-white p-8 rounded-b-2xl shadow-xl space-y-6">
+//                     <div className="bg-cyan-50 border-2 border-cyan-200 p-5 rounded-xl">
+//                         <h4 className="font-semibold text-gray-800 mb-4">QC Inspection Checklist</h4>
+//                         <div className="space-y-3">
+//                             {Object.entries({
+//                                 visualInspection: 'Visual Inspection (No scratches/damages)',
+//                                 functionalTest: 'Functional Testing (All features working)',
+//                                 dimensionalCheck: 'Dimensional Accuracy Check',
+//                                 electricalTest: 'Electrical Performance Test',
+//                                 safetyCompliance: 'Safety Standards Compliance',
+//                                 packagingCheck: 'Packaging & Labeling Verification'
+//                             }).map(([key, label]) => (
+//                                 <div key={key} className="flex items-center gap-3 bg-white p-3 rounded-lg border border-cyan-200">
+//                                     <input
+//                                         type="checkbox"
+//                                         checked={qcChecks[key]}
+//                                         onChange={() => handleCheckChange(key)}
+//                                         id={key}
+//                                         className="h-5 w-5 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500"
+//                                     />
+//                                     <label htmlFor={key} className="text-sm text-gray-700 font-medium cursor-pointer">
+//                                         {label}
+//                                     </label>
+//                                 </div>
+//                             ))}
+//                         </div>
+//                     </div>
 
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Defects Found (if any)
-                        </label>
-                        <textarea
-                            value={defectsFound}
-                            onChange={(e) => setDefectsFound(e.target.value)}
-                            placeholder="List any defects or issues found..."
-                            rows="3"
-                            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none"
-                        />
-                    </div>
+//                     <div>
+//                         <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                             Defects Found (if any)
+//                         </label>
+//                         <textarea
+//                             value={defectsFound}
+//                             onChange={(e) => setDefectsFound(e.target.value)}
+//                             placeholder="List any defects or issues found..."
+//                             rows="3"
+//                             className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none"
+//                         />
+//                     </div>
 
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            QC Inspector Notes
-                        </label>
-                        <textarea
-                            value={qcNotes}
-                            onChange={(e) => setQCNotes(e.target.value)}
-                            placeholder="Additional observations or comments..."
-                            rows="3"
-                            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none"
-                        />
-                    </div>
+//                     <div>
+//                         <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                             QC Inspector Notes
+//                         </label>
+//                         <textarea
+//                             value={qcNotes}
+//                             onChange={(e) => setQCNotes(e.target.value)}
+//                             placeholder="Additional observations or comments..."
+//                             rows="3"
+//                             className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none"
+//                         />
+//                     </div>
 
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Final QC Result <span className="text-red-500">*</span>
-                        </label>
-                        <div className="flex gap-4">
-                            <label className="flex items-center gap-2 px-6 py-3 border-2 rounded-lg cursor-pointer hover:bg-green-50 transition"
-                                style={{ borderColor: passFail === 'pass' ? '#10b981' : '#d1d5db', backgroundColor: passFail === 'pass' ? '#ecfdf5' : 'white' }}>
-                                <input
-                                    type="radio"
-                                    name="passFail"
-                                    value="pass"
-                                    checked={passFail === 'pass'}
-                                    onChange={(e) => setPassFail(e.target.value)}
-                                    className="h-4 w-4 text-green-600"
-                                />
-                                <span className="font-semibold text-green-700">PASS ✓</span>
-                            </label>
-                            <label className="flex items-center gap-2 px-6 py-3 border-2 rounded-lg cursor-pointer hover:bg-red-50 transition"
-                                style={{ borderColor: passFail === 'fail' ? '#ef4444' : '#d1d5db', backgroundColor: passFail === 'fail' ? '#fef2f2' : 'white' }}>
-                                <input
-                                    type="radio"
-                                    name="passFail"
-                                    value="fail"
-                                    checked={passFail === 'fail'}
-                                    onChange={(e) => setPassFail(e.target.value)}
-                                    className="h-4 w-4 text-red-600"
-                                />
-                                <span className="font-semibold text-red-700">FAIL ✗</span>
-                            </label>
-                        </div>
-                    </div>
+//                     <div>
+//                         <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                             Final QC Result <span className="text-red-500">*</span>
+//                         </label>
+//                         <div className="flex gap-4">
+//                             <label className="flex items-center gap-2 px-6 py-3 border-2 rounded-lg cursor-pointer hover:bg-green-50 transition"
+//                                 style={{ borderColor: passFail === 'pass' ? '#10b981' : '#d1d5db', backgroundColor: passFail === 'pass' ? '#ecfdf5' : 'white' }}>
+//                                 <input
+//                                     type="radio"
+//                                     name="passFail"
+//                                     value="pass"
+//                                     checked={passFail === 'pass'}
+//                                     onChange={(e) => setPassFail(e.target.value)}
+//                                     className="h-4 w-4 text-green-600"
+//                                 />
+//                                 <span className="font-semibold text-green-700">PASS ✓</span>
+//                             </label>
+//                             <label className="flex items-center gap-2 px-6 py-3 border-2 rounded-lg cursor-pointer hover:bg-red-50 transition"
+//                                 style={{ borderColor: passFail === 'fail' ? '#ef4444' : '#d1d5db', backgroundColor: passFail === 'fail' ? '#fef2f2' : 'white' }}>
+//                                 <input
+//                                     type="radio"
+//                                     name="passFail"
+//                                     value="fail"
+//                                     checked={passFail === 'fail'}
+//                                     onChange={(e) => setPassFail(e.target.value)}
+//                                     className="h-4 w-4 text-red-600"
+//                                 />
+//                                 <span className="font-semibold text-red-700">FAIL ✗</span>
+//                             </label>
+//                         </div>
+//                     </div>
 
-                    <div className="pt-4 flex justify-end">
-                        <button
-                            type="submit"
-                            className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-semibold rounded-lg hover:from-cyan-700 hover:to-blue-700 disabled:opacity-50 flex items-center gap-2 transition shadow-lg"
-                            disabled={isLoading || !allChecksComplete || !passFail}
-                        >
-                            {isLoading ? 'Saving...' : <><CheckCircle size={20} /> Submit QC Report</>}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    );
-};
+//                     <div className="pt-4 flex justify-end">
+//                         <button
+//                             type="submit"
+//                             className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-semibold rounded-lg hover:from-cyan-700 hover:to-blue-700 disabled:opacity-50 flex items-center gap-2 transition shadow-lg"
+//                             disabled={isLoading || !allChecksComplete || !passFail}
+//                         >
+//                             {isLoading ? 'Saving...' : <><CheckCircle size={20} /> Submit QC Report</>}
+//                         </button>
+//                     </div>
+//                 </form>
+//             </div>
+//         </div>
+//     );
+// };
 
 // ----------------------------------------------------------------------
 // ## 6. Print Sticker
 // ----------------------------------------------------------------------
-const PrintStickerForm = ({ assignment }) => {
-    const [stickerType, setStickerType] = useState('');
-    const [quantity, setQuantity] = useState('');
-    const [batchRef, setBatchRef] = useState(generateDateCode());
-    const [printQuality, setPrintQuality] = useState('high');
-    const [isPrinting, setIsPrinting] = useState(false);
-    const [printProgress, setPrintProgress] = useState(0);
+// const PrintStickerForm = ({ assignment }) => {
+//     const [stickerType, setStickerType] = useState('');
+//     const [quantity, setQuantity] = useState('');
+//     const [batchRef, setBatchRef] = useState(generateDateCode());
+//     const [printQuality, setPrintQuality] = useState('high');
+//     const [isPrinting, setIsPrinting] = useState(false);
+//     const [printProgress, setPrintProgress] = useState(0);
 
-    const handlePrint = (e) => {
-        e.preventDefault();
-        if (!stickerType || !quantity) {
-            alert('Please fill in all required fields');
-            return;
-        }
+//     const handlePrint = (e) => {
+//         e.preventDefault();
+//         if (!stickerType || !quantity) {
+//             alert('Please fill in all required fields');
+//             return;
+//         }
 
-        setIsPrinting(true);
-        setPrintProgress(0);
+//         setIsPrinting(true);
+//         setPrintProgress(0);
 
-        const interval = setInterval(() => {
-            setPrintProgress(prev => {
-                if (prev >= 100) {
-                    clearInterval(interval);
-                    setIsPrinting(false);
-                    alert(`Successfully printed ${quantity} stickers!`);
-                    return 100;
-                }
-                return prev + 20;
-            });
-        }, 400);
-    };
+//         const interval = setInterval(() => {
+//             setPrintProgress(prev => {
+//                 if (prev >= 100) {
+//                     clearInterval(interval);
+//                     setIsPrinting(false);
+//                     alert(`Successfully printed ${quantity} stickers!`);
+//                     return 100;
+//                 }
+//                 return prev + 20;
+//             });
+//         }, 400);
+//     };
 
-    return (
-        <div className="p-4 sm:p-8">
-            <div className="max-w-3xl mx-auto">
-                <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 rounded-t-2xl">
-                    <h3 className="text-2xl font-bold flex items-center gap-3">
-                        <Printer size={28} />
-                        Label & Sticker Printing System
-                    </h3>
-                    <p className="text-indigo-100 mt-2">Product labeling and identification</p>
-                </div>
+//     return (
+//         <div className="p-4 sm:p-8">
+//             <div className="max-w-3xl mx-auto">
+//                 <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 rounded-t-2xl">
+//                     <h3 className="text-2xl font-bold flex items-center gap-3">
+//                         <Printer size={28} />
+//                         Label & Sticker Printing System
+//                     </h3>
+//                     <p className="text-indigo-100 mt-2">Product labeling and identification</p>
+//                 </div>
 
-                <form onSubmit={handlePrint} className="bg-white p-8 rounded-b-2xl shadow-xl space-y-6">
-                    <div className="grid md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                Sticker Type <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={stickerType}
-                                onChange={(e) => setStickerType(e.target.value)}
-                                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none"
-                                required
-                            >
-                                <option value="">Select sticker type</option>
-                                <option value="barcode">Barcode Label</option>
-                                <option value="qr">QR Code Label</option>
-                                <option value="product">Product Information</option>
-                                <option value="warning">Warning Label</option>
-                                <option value="serial">Serial Number</option>
-                            </select>
-                        </div>
+//                 <form onSubmit={handlePrint} className="bg-white p-8 rounded-b-2xl shadow-xl space-y-6">
+//                     <div className="grid md:grid-cols-2 gap-6">
+//                         <div>
+//                             <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                                 Sticker Type <span className="text-red-500">*</span>
+//                             </label>
+//                             <select
+//                                 value={stickerType}
+//                                 onChange={(e) => setStickerType(e.target.value)}
+//                                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none"
+//                                 required
+//                             >
+//                                 <option value="">Select sticker type</option>
+//                                 <option value="barcode">Barcode Label</option>
+//                                 <option value="qr">QR Code Label</option>
+//                                 <option value="product">Product Information</option>
+//                                 <option value="warning">Warning Label</option>
+//                                 <option value="serial">Serial Number</option>
+//                             </select>
+//                         </div>
 
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                Quantity <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="number"
-                                min="1"
-                                value={quantity}
-                                onChange={(e) => setQuantity(e.target.value)}
-                                placeholder="Number of stickers"
-                                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none"
-                                required
-                            />
-                        </div>
-                    </div>
+//                         <div>
+//                             <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                                 Quantity <span className="text-red-500">*</span>
+//                             </label>
+//                             <input
+//                                 type="number"
+//                                 min="1"
+//                                 value={quantity}
+//                                 onChange={(e) => setQuantity(e.target.value)}
+//                                 placeholder="Number of stickers"
+//                                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none"
+//                                 required
+//                             />
+//                         </div>
+//                     </div>
 
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Batch Reference <span className="text-blue-500">(Auto-generated)</span>
-                        </label>
-                        <input
-                            type="text"
-                            value={batchRef}
-                            disabled
-                            className="w-full px-4 py-3 bg-gray-100 border-2 border-gray-300 rounded-lg cursor-not-allowed font-mono"
-                        />
-                    </div>
+//                     <div>
+//                         <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                             Batch Reference <span className="text-blue-500">(Auto-generated)</span>
+//                         </label>
+//                         <input
+//                             type="text"
+//                             value={batchRef}
+//                             disabled
+//                             className="w-full px-4 py-3 bg-gray-100 border-2 border-gray-300 rounded-lg cursor-not-allowed font-mono"
+//                         />
+//                     </div>
 
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Print Quality
-                        </label>
-                        <div className="flex gap-4">
-                            {['standard', 'high', 'premium'].map((quality) => (
-                                <label key={quality} className="flex items-center gap-2 px-4 py-2 border-2 rounded-lg cursor-pointer hover:bg-indigo-50 transition"
-                                    style={{ borderColor: printQuality === quality ? '#6366f1' : '#d1d5db', backgroundColor: printQuality === quality ? '#eef2ff' : 'white' }}>
-                                    <input
-                                        type="radio"
-                                        name="printQuality"
-                                        value={quality}
-                                        checked={printQuality === quality}
-                                        onChange={(e) => setPrintQuality(e.target.value)}
-                                        className="h-4 w-4 text-indigo-600"
-                                    />
-                                    <span className="text-sm font-medium capitalize">{quality}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
+//                     <div>
+//                         <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                             Print Quality
+//                         </label>
+//                         <div className="flex gap-4">
+//                             {['standard', 'high', 'premium'].map((quality) => (
+//                                 <label key={quality} className="flex items-center gap-2 px-4 py-2 border-2 rounded-lg cursor-pointer hover:bg-indigo-50 transition"
+//                                     style={{ borderColor: printQuality === quality ? '#6366f1' : '#d1d5db', backgroundColor: printQuality === quality ? '#eef2ff' : 'white' }}>
+//                                     <input
+//                                         type="radio"
+//                                         name="printQuality"
+//                                         value={quality}
+//                                         checked={printQuality === quality}
+//                                         onChange={(e) => setPrintQuality(e.target.value)}
+//                                         className="h-4 w-4 text-indigo-600"
+//                                     />
+//                                     <span className="text-sm font-medium capitalize">{quality}</span>
+//                                 </label>
+//                             ))}
+//                         </div>
+//                     </div>
 
-                    {isPrinting && (
-                        <div className="bg-indigo-50 border-2 border-indigo-200 p-5 rounded-xl">
-                            <div className="flex justify-between items-center mb-2">
-                                <span className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                    <Printer size={16} className="animate-pulse" />
-                                    Printing in progress...
-                                </span>
-                                <span className="text-sm font-bold text-indigo-600">{printProgress}%</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                                <div
-                                    className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300"
-                                    style={{ width: `${printProgress}%` }}
-                                />
-                            </div>
-                        </div>
-                    )}
+//                     {isPrinting && (
+//                         <div className="bg-indigo-50 border-2 border-indigo-200 p-5 rounded-xl">
+//                             <div className="flex justify-between items-center mb-2">
+//                                 <span className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+//                                     <Printer size={16} className="animate-pulse" />
+//                                     Printing in progress...
+//                                 </span>
+//                                 <span className="text-sm font-bold text-indigo-600">{printProgress}%</span>
+//                             </div>
+//                             <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+//                                 <div
+//                                     className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300"
+//                                     style={{ width: `${printProgress}%` }}
+//                                 />
+//                             </div>
+//                         </div>
+//                     )}
 
-                    <div className="pt-4 flex justify-end gap-4">
-                        <button
-                            type="button"
-                            className="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition"
-                            onClick={() => {
-                                setStickerType('');
-                                setQuantity('');
-                                setPrintQuality('high');
-                            }}
-                        >
-                            Reset Form
-                        </button>
-                        <button
-                            type="submit"
-                            className="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 flex items-center gap-2 transition shadow-lg"
-                            disabled={isPrinting}
-                        >
-                            {isPrinting ? 'Printing...' : <><Printer size={20} /> Start Printing</>}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    );
-};
+//                     <div className="pt-4 flex justify-end gap-4">
+//                         <button
+//                             type="button"
+//                             className="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition"
+//                             onClick={() => {
+//                                 setStickerType('');
+//                                 setQuantity('');
+//                                 setPrintQuality('high');
+//                             }}
+//                         >
+//                             Reset Form
+//                         </button>
+//                         <button
+//                             type="submit"
+//                             className="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 flex items-center gap-2 transition shadow-lg"
+//                             disabled={isPrinting}
+//                         >
+//                             {isPrinting ? 'Printing...' : <><Printer size={20} /> Start Printing</>}
+//                         </button>
+//                     </div>
+//                 </form>
+//             </div>
+//         </div>
+//     );
+// };
 
 // ----------------------------------------------------------------------
 // ## Main Render Logic
 // ----------------------------------------------------------------------
-const renderAssignmentUI = (assignment) => {
-    switch (assignment.taskTitle) {
 
-        case 'Add Barcode':
-            return <AddBarcodeForm assignment={assignment} />;
-        case 'Soldering':
-            return <SolderingChecklist assignment={assignment} />;
-        case 'Battery connection & Capacitor & add battery':
-            return <BatteryConnectionWorkstation assignment={assignment} />;;
-        case 'Frimware update':
-            return <FirmwareUpdateWorkstation assignment={assignment} />;
-        case 'QC check':
-            return <QCCheckForm assignment={assignment} />;
-        case 'Print Sticker':
-            return <PrintStickerForm assignment={assignment} />;
-        default:
-            return (
-                <div>
-
-                    <div className="p-10 text-center">
-
-                        <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-8">
-                            <Package size={48} className="mx-auto text-gray-400 mb-4" />
-                            <h3 className="text-xl font-semibold text-gray-700 mb-2">Standard Task View</h3>
-                            <p className="text-gray-500 mb-6">No custom UI defined for: "{assignment.taskTitle}"</p>
-                            <button className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition">
-                                Mark as Completed
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            );
-    }
-};
 
 // ----------------------------------------------------------------------
 // ## Main Work Component
@@ -955,7 +923,7 @@ function Work() {
             // --- Correct handling of new response structure ---
             if (data.emp) {
                 setEmployeeData(data.emp);
-
+                
                 if (Array.isArray(data.emp.assignWork)) {
                     const fetchedAssignments = data.emp.assignWork.map((assignment) => ({
                         id: assignment._id,
@@ -1017,6 +985,43 @@ function Work() {
     };
 
     const employeeName = employeeData?.empName || 'Employee';
+
+    const renderAssignmentUI = (assignment) => {
+
+   
+    switch (assignment.taskTitle) {
+
+        case 'Add Barcode':
+            return <AddBarcodeForm assignment={assignment} />;
+        case 'Soldering':
+            return <SolderingChecklist assignment={assignment} />;
+        case 'Battery connection & Capacitor & add battery':
+            return <BatteryConnectionWorkstation assignment={assignment} />;;
+        case 'Frimware update':
+            return <FirmwareUpdateWorkstation assignment={assignment} />;
+        case 'QC check':
+          return <QCProbeWorkstation assignment={assignment} currentEmployee={employeeName} />;
+        case 'Print Sticker':
+            return <PrintStickerForm assignment={assignment} />;
+        default:
+            return (
+                <div>
+
+                    <div className="p-10 text-center">
+
+                        <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-8">
+                            <Package size={48} className="mx-auto text-gray-400 mb-4" />
+                            <h3 className="text-xl font-semibold text-gray-700 mb-2">Standard Task View</h3>
+                            <p className="text-gray-500 mb-6">No custom UI defined for: "{assignment.taskTitle}"</p>
+                            <button className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition">
+                                Mark as Completed
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+    }
+};
 
     return (
         <>
@@ -1114,7 +1119,7 @@ function Work() {
                                 {selectedAssignment ? (
                                     <>
                                         {/* Header moved inside renderAssignmentUI to be part of the form's layout */}
-                                        {renderAssignmentUI(selectedAssignment)}
+                                        {renderAssignmentUI(selectedAssignment,employeeName)}
                                     </>
                                 ) : (
                                     <div className="p-20 text-center text-gray-500">
@@ -1128,7 +1133,13 @@ function Work() {
                     </div>
                 </div>
             </div>
+
+            
         </>
+
+
+
+
     );
 }
 

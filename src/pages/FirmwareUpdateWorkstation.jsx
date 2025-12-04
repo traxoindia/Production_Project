@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   Cpu, 
   CheckCircle,
-  Clock,
-  BatteryCharging,
   ChevronDown,
   Zap,
 } from "lucide-react";
@@ -13,21 +11,22 @@ import { toast } from "react-toastify";
 const FETCH_BATTERY_DETAILS_API =
   "https://vanaras.onrender.com/api/v1/superadmin/fetchBatteryConnectionDetails";
 
-// Mock API endpoint for firmware update (Placeholder for future server endpoint)
-const FIRMWARE_UPDATE_API = "/api/v1/superadmin/firmwareUpdate"; 
+const CREATE_FIRMWARE_API = "https://vanaras.onrender.com/api/v1/superadmin/createFirmWare"; 
 
 // ----------------------------------------------------------------------
 // ## 1. Individual Device Update Form
 // ----------------------------------------------------------------------
 const FirmwareUpdateForm = ({ imeiEntry, onUpdateComplete }) => {
-  // Use a placeholder for the current version since the API doesn't provide it
-  const [currentVersion, setCurrentVersion] = useState('v1.0.0'); 
-  const [targetVersion, setTargetVersion] = useState('');
-  const [updateStatus, setUpdateStatus] = useState('idle'); // idle, uploading, verifying, complete
+  // New state for user-editable ICCID No and Serial No (slNo)
+  // Ensure the initial state uses the data from imeiEntry
+  const [iccidNo, setIccidNo] = useState(imeiEntry.iccidNo || ''); 
+  const [slNo, setSlNo] = useState(imeiEntry.slNo || '');
+  
+  const [updateStatus, setUpdateStatus] = useState('idle');
   const [progress, setProgress] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   
-  // NOTE: isCompletedLocally relies on imeiEntry.isComplete, which is assumed false upon fetch.
+  // The completion status is inherited from imeiEntry
   const [isCompletedLocally, setIsCompletedLocally] = useState(imeiEntry.isComplete);
 
 
@@ -41,10 +40,53 @@ const FirmwareUpdateForm = ({ imeiEntry, onUpdateComplete }) => {
       );
   }
 
+  const handleFirmwarePost = async () => {
+    const token = localStorage.getItem("token"); // Get token
+    
+    // API requires imeiNo, iccidNo, slNo (using local state values)
+    const postData = {
+        imeiNo: imeiEntry.imeiNo,
+        iccidNo: iccidNo,
+        slNo: slNo,
+    };
+    
+    // Basic validation before API call
+    if (!postData.imeiNo || !postData.iccidNo || !postData.slNo) {
+        toast.error('IMEI, ICCID No, and Serial No must all be provided.', { position: "top-center" });
+        return false;
+    }
+
+    try {
+        const response = await fetch(CREATE_FIRMWARE_API, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}` 
+            },
+            body: JSON.stringify(postData),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `API failed with status: ${response.status}`);
+        }
+        
+        // Success
+        return true; 
+
+    } catch (error) {
+        console.error("Firmware POST Error:", error);
+        toast.error(`POST Failed: ${error.message}`, { position: "top-center" });
+        return false;
+    }
+  };
+
+
   const handleUpdate = (e) => {
     e.preventDefault();
-    if (!currentVersion || !targetVersion) {
-        toast.error('Please enter both version numbers.', { position: "bottom-right" });
+    
+    if (!iccidNo || !slNo) {
+        toast.error('Please fill in the ICCID No and Serial No fields.', { position: "bottom-right" });
         return;
     }
 
@@ -52,59 +94,68 @@ const FirmwareUpdateForm = ({ imeiEntry, onUpdateComplete }) => {
     setUpdateStatus('uploading');
     setProgress(0);
 
-    // --- START: SIMULATION LOGIC ---
+    // --- START: FIRMWARE UPDATE PROCESS SIMULATION ---
     const interval = setInterval(() => {
         setProgress(prev => {
             if (prev >= 100) {
                 clearInterval(interval);
                 setUpdateStatus('verifying');
                 
-                // Simulate success API call after verification delay
-                setTimeout(() => {
-                    setUpdateStatus('complete');
-                    setIsLoading(false);
-                    
-                    // Trigger the notification/API call to mark status complete on server side
-                    // (Requires a new POST API call here)
-                    setIsCompletedLocally(true); 
-                    toast.success(`IMEI ${imeiEntry.imeiNo} updated to ${targetVersion}!`, { position: "top-center" });
-                    
-                    onUpdateComplete(imeiEntry._id); 
+                // 1. Verification/POST delay
+                setTimeout(async () => {
+                    const postSuccess = await handleFirmwarePost();
 
-                }, 2000);
+                    if (postSuccess) {
+                        setUpdateStatus('complete');
+                        setIsCompletedLocally(true); 
+                        toast.success(`Firmware request initiated for IMEI ${imeiEntry.imeiNo}!`, { position: "top-center" });
+                        onUpdateComplete(imeiEntry._id); 
+                    } else {
+                        setUpdateStatus('idle'); 
+                        setProgress(0);
+                    }
+                    
+                    setIsLoading(false);
+
+                }, 2000); 
                 return 100;
             }
             return prev + 10;
         });
     }, 300);
-    // --- END: SIMULATION LOGIC ---
+    // --- END: FIRMWARE UPDATE PROCESS SIMULATION ---
   };
 
   return (
     <div className="p-4 bg-white border-t border-purple-200">
       <form onSubmit={handleUpdate} className="bg-white p-4 space-y-6">
         <div className="grid md:grid-cols-2 gap-6">
+          {/* ICCID No Input Field */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Current Firmware Version
+              ICCID No <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              value={currentVersion}
-              readOnly
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-100 text-gray-600 focus:outline-none"
+              value={iccidNo}
+              onChange={(e) => setIccidNo(e.target.value)}
+              placeholder="Enter ICCID Number"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+              required
+              disabled={isLoading || isCompletedLocally}
             />
           </div>
 
+          {/* Serial No (slNo) Input Field */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Target Firmware Version <span className="text-red-500">*</span>
+              Serial No (SL No) <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              value={targetVersion}
-              onChange={(e) => setTargetVersion(e.target.value)}
-              placeholder="e.g., v2.0.0"
+              value={slNo}
+              onChange={(e) => setSlNo(e.target.value)}
+              placeholder="Enter Serial Number"
               className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
               required
               disabled={isLoading || isCompletedLocally}
@@ -116,11 +167,13 @@ const FirmwareUpdateForm = ({ imeiEntry, onUpdateComplete }) => {
           <div className="bg-purple-50 border-2 border-purple-200 p-5 rounded-xl">
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-semibold text-gray-700">
-                {updateStatus === 'uploading' && 'Uploading Firmware...'}
-                {updateStatus === 'verifying' && 'Verifying Update...'}
-                {updateStatus === 'complete' && 'Update Complete!'}
+                {updateStatus === 'uploading' && '1/2 Preparing Request...'}
+                {updateStatus === 'verifying' && '2/2 Sending Update Status to Server...'}
+                {updateStatus === 'complete' && 'Update Request Complete!'}
               </span>
-              <span className="text-sm font-bold text-purple-600">{progress}%</span>
+              <span className="text-sm font-bold text-purple-600">
+                {updateStatus === 'uploading' ? `${progress}%` : '...'}
+            </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
               <div
@@ -133,7 +186,7 @@ const FirmwareUpdateForm = ({ imeiEntry, onUpdateComplete }) => {
 
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
             <p className="text-sm text-yellow-800">
-                ⚠ Device: **{imeiEntry.imeiNo}**. Ensure connection before updating.
+                ⚠ Device: **{imeiEntry.imeiNo}**. Ensure connection before sending the update request.
             </p>
         </div>
 
@@ -143,7 +196,7 @@ const FirmwareUpdateForm = ({ imeiEntry, onUpdateComplete }) => {
             className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 flex items-center gap-2 transition shadow-lg"
             disabled={isLoading || isCompletedLocally}
           >
-            {isLoading ? 'Updating...' : <><Cpu size={20} /> Start Firmware Update</>}
+            {isLoading ? 'Updating...' : <><Cpu size={20} /> Send Firmware Update Request</>}
           </button>
         </div>
       </form>
@@ -160,7 +213,6 @@ const FirmwareUpdateWorkstation = ({ assignment }) => {
   const [activeImeiId, setActiveImeiId] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   
-  // >>> NEW STATE FOR FILTERING <<<
   const [filterImei, setFilterImei] = useState(''); 
 
   const fetchIMEIList = async () => {
@@ -183,25 +235,27 @@ const FirmwareUpdateWorkstation = ({ assignment }) => {
       const allImeis = data.batteryConnectionDetailsList || []; 
       
       const mapped = allImeis.map((item) => {
-        // CORRECTION: Use imeiNo as the unique ID since the API response structure is flat
         const uniqueId = item.imeiNo; 
         
-        // ASSUMPTION: isComplete is based on a future 'firmwareStatus' field, 
-        // which we assume is initially false unless the API adds it later.
-        const isComplete = item.firmwareStatus === true; 
+        // --- NEW LOGIC START ---
+        // A device is considered 'Complete' (cannot be updated) if overAllassemblyStatus is TRUE.
+        const isComplete = item.overAllassemblyStatus === true; 
+        
+        // A device is 'Ready' for listing if battery is connected (assuming this is the first filter)
+        const isReady = item.batteryConnectedStatus === true; 
+        // --- NEW LOGIC END ---
 
         return {
           ...item,
-          // Map unique identifier
           _id: uniqueId, 
           imeiNo: item.imeiNo || "N/A",
-          // Use hardcoded version/placeholder since API lacks a current version field
-          currentVersion: 'v1.0.0', 
+          iccidNo: item.iccidNo || '',
+          slNo: item.slNo || '',
+          currentVersion: 'N/A', 
           isComplete: isComplete,
-          // Only show devices that completed the battery connection (as required by context)
-          isReady: item.batteryConnectedStatus === true, 
+          isReady: isReady, 
         };
-      }).filter(item => item.isReady); // Filter only devices that passed the previous step
+      }).filter(item => item.isReady); // Only show devices that are ready
 
       setImeiData(mapped);
       
@@ -218,35 +272,29 @@ const FirmwareUpdateWorkstation = ({ assignment }) => {
   }, [refreshTrigger]);
 
   const handleUpdateComplete = (completedImeiId) => {
-    // Optimistically update the list without re-fetching everything
+    // When a firmware request is successfully POSTed, mark it as complete
     setImeiData(prevData => prevData.map(item => 
         item._id === completedImeiId ? { ...item, isComplete: true } : item
     ));
-    setActiveImeiId(null);
-    toast.success("Firmware status updated locally. List refreshed.");
   };
 
   const handleAccordionToggle = (id) => {
     setActiveImeiId((prev) => (prev === id ? null : id));
   };
 
-  // >>> FILTERING LOGIC <<<
+  // --- Filtering Logic ---
   const handleFilterChange = (e) => {
-    // 1. Strip non-digits
     const value = e.target.value.replace(/[^0-9]/g, ''); 
-    // 2. Limit to 15 digits
     setFilterImei(value.slice(0, 15)); 
-    // Optionally close the accordion when filtering starts
     if (value.length > 0) {
         setActiveImeiId(null);
     }
   };
 
-  // Filter the data based on the current input value
   const filteredImeis = imeiData.filter(imei => 
       imei.imeiNo && imei.imeiNo.includes(filterImei)
   );
-  // >>> END FILTERING LOGIC <<<
+  // --- End Filtering Logic ---
 
   return (
     <div className="p-4 sm:p-8">
@@ -261,7 +309,7 @@ const FirmwareUpdateWorkstation = ({ assignment }) => {
 
         <div className="bg-white p-8 rounded-b-2xl shadow-xl space-y-6">
           
-          {/* NEW: IMEI Filter Input Field */}
+          {/* IMEI Filter Input Field */}
           <div className="mb-6">
               <label htmlFor="imei-filter" className="block text-sm font-medium text-gray-700 mb-2">
                   Filter by **IMEI Number** (15 Digits) 🔎
@@ -276,24 +324,23 @@ const FirmwareUpdateWorkstation = ({ assignment }) => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 transition duration-150"
               />
           </div>
-          {/* END NEW IMEI Filter Input Field */}
 
           {listLoading ? (
             <div className="text-center py-10">Loading device list...</div>
-          ) : filteredImeis.length === 0 ? ( // Check filteredImeis length
+          ) : filteredImeis.length === 0 ? (
             <div className="text-center py-10 text-gray-500">
-                {filterImei ? `No IMEI found matching "${filterImei}".` : 'No units are ready for firmware update.'}
+                {filterImei ? `No IMEI found matching "${filterImei}".` : 'No units are currently passing the battery connection check.'}
             </div>
           ) : (
             <div className="space-y-3">
-              {filteredImeis.map((imei) => { // Map over filteredImeis
+              {filteredImeis.map((imei) => {
                 const id = imei._id;
                 const isOpen = activeImeiId === id;
-                const isComplete = imei.isComplete;
+                const isComplete = imei.isComplete; // Determined by overAllassemblyStatus
 
                 let headerClass = isComplete ? "bg-green-100 cursor-default" : "bg-gray-50 hover:bg-gray-100 cursor-pointer";
                 let icon = isComplete ? <CheckCircle className="text-green-700" /> : <Zap className="text-purple-500" />;
-                let statusText = isComplete ? "Update Passed" : "Pending Update";
+                let statusText = isComplete ? "Overall Assembly Passed (Done)" : "Ready for Firmware Request";
 
 
                 return (
@@ -311,7 +358,7 @@ const FirmwareUpdateWorkstation = ({ assignment }) => {
                         <div>
                             <span className="font-mono text-lg font-bold">{imei.imeiNo}</span>
                             <span className="ml-4 px-3 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-700">
-                                Current: {imei.currentVersion}
+                                Status: Battery Connected
                             </span>
                         </div>
                       </div>
@@ -330,7 +377,7 @@ const FirmwareUpdateWorkstation = ({ assignment }) => {
                       </div>
                     </div>
 
-                    {/* FORM */}
+                    {/* FORM - Only render if open AND not complete */}
                     {isOpen && !isComplete && (
                       <FirmwareUpdateForm
                         imeiEntry={imei}
@@ -342,7 +389,7 @@ const FirmwareUpdateWorkstation = ({ assignment }) => {
                     {isComplete && (
                         <div className="p-4 bg-green-50 text-green-700 text-sm border-t border-green-300 flex items-center gap-2">
                             <CheckCircle size={16} /> 
-                            <span>Firmware update </span>
+                            <span>This unit has passed the Overall Assembly check and is complete.</span>
                         </div>
                     )}
                   </div>

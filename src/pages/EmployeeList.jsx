@@ -3,7 +3,6 @@ import { User, Mail, Phone, Briefcase, RefreshCw } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Navbar1 from './Navbar1';
 import ProductList from './ProductList';
-// import TraxoStickerGenerator from './TraxoSticker';
 
 // --- API Endpoint for fetching all employees ---
 const FETCH_EMPLOYEES_API = "https://vanaras.onrender.com/api/v1/superadmin/fetchAllEmployee";
@@ -86,9 +85,7 @@ function EmployeeList() {
             <div className=''>
                 <ProductList />
             </div>
-            {/* <div>
-            <TraxoStickerGenerator/>
-            </div> */}
+            
 
             <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8 -mt-80">
                 <div className="max-w-7xl mx-auto">
