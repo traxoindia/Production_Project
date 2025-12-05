@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable"; 
 import toast, { Toaster } from "react-hot-toast";
-import { Cpu, CheckCircle, Download, User, ChevronDown, Archive, Clock, Hash, Zap, BarChart2, Send, Lock } from "lucide-react"; 
+import { Cpu, CheckCircle, Download, User, ChevronDown, Archive, Clock, Hash, Zap, BarChart2, Send, Lock, Search } from "lucide-react"; 
 
 // --- Import Images ---
 import logo from '../Images/logo.png' 
@@ -56,8 +56,9 @@ const QCProbeWorkstation = ({ currentEmployee }) => {
     const [loadingFirmware, setLoadingFirmware] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false); 
     
-    // STATE FOR ACCORDION
+    // STATE FOR ACCORDION & FILTER
     const [openImei, setOpenImei] = useState(null); 
+    const [imeiFilter, setImeiFilter] = useState(""); 
 
     // Derived State: The currently selected record and its checklist status
     const selectedRecord = imeiRecords.find(record => record.imeiNo === openImei);
@@ -105,7 +106,7 @@ const QCProbeWorkstation = ({ currentEmployee }) => {
         }
     };
     
-    // --- API Fetch Function for IMEI/Firmware Details (UPDATED) ---
+    // --- API Fetch Function for IMEI/Firmware Details ---
     const fetchFirmWareDetails = async () => {
         setLoadingFirmware(true);
         const token = localStorage.getItem("token");
@@ -470,6 +471,11 @@ const QCProbeWorkstation = ({ currentEmployee }) => {
         }
     };
 
+    // Filter the records based on the input field
+    const filteredImeiRecords = imeiRecords.filter(record => 
+        record.imeiNo && record.imeiNo.toLowerCase().includes(imeiFilter.toLowerCase())
+    );
+
 
     return (
         <div className="min-h-screen bg-gradient-to-r from-cyan-50 to-blue-100 flex flex-col items-center py-8 px-4">
@@ -480,11 +486,11 @@ const QCProbeWorkstation = ({ currentEmployee }) => {
 
             <div className="w-full max-w-6xl bg-white shadow-2xl rounded-xl p-6 border border-blue-200">
                 
-                {/* 1. Control Row */}
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 pb-4 border-b border-blue-200">
+                {/* 1. Control Row (Employee, Filter, Status, PDF) - Refined Layout */}
+                <div className="grid grid-cols-1 gap-4 mb-6 pb-4 border-b border-blue-200 sm:grid-cols-2 lg:grid-cols-4 items-center">
                     
-                    {/* Employee Display */}
-                    <div className="flex items-center gap-3 w-full md:w-1/3">
+                    {/* Employee Display (Column 1) */}
+                    <div className="flex items-center gap-3">
                         <User size={20} className="text-blue-700" />
                         <input
                             type="text"
@@ -495,20 +501,41 @@ const QCProbeWorkstation = ({ currentEmployee }) => {
                         />
                     </div>
 
-                    {/* Completion Status for SELECTED Record */}
-                    <div className="text-sm font-semibold text-gray-800">
-                        {openImei ? `Checklist Status (${openImei}):` : 'Select an IMEI to begin QC'} 
-                        {openImei && (
+                    {/* IMEI Filter Input (Column 2) - Combined and placed correctly */}
+                    <div className="flex items-center gap-2 border rounded-md px-2 bg-white shadow-sm">
+                        <Search size={20} className="text-gray-500" />
+                        <input
+                            type="text" // Changed back to text to prevent input field control issues on web, relying on onChange slice
+                            inputMode="numeric" // Suggest numeric keyboard on mobile
+                            pattern="[0-9]*" // Hint for numeric input
+                            value={imeiFilter}
+                            onChange={(e) => {
+                                // Enforce max 15 digits
+                                const value = e.target.value.replace(/\D/g, '').slice(0, 15); // Strip non-digits and enforce length
+                                setImeiFilter(value);
+                            }}
+                            placeholder="Filter by IMEI (15 digits)"
+                            className="w-full p-1.5 bg-white focus:outline-none text-gray-700 text-sm"
+                            maxLength={15} 
+                        />
+                    </div>
+                    
+                    {/* Completion Status for SELECTED Record (Column 3) */}
+                    <div className="flex items-center text-sm font-semibold text-gray-800">
+                        **Status:**
+                        {openImei ? (
                             <span className={`ml-2 font-bold ${isRecordCompleted ? 'text-green-600' : (allChecksComplete ? 'text-green-600' : 'text-red-600')}`}>
                                 {Object.values(qcChecks).filter(Boolean).length} / {Object.keys(CHECKLIST_ITEMS).length}
                             </span>
+                        ) : (
+                            <span className="ml-2 text-gray-500">Select IMEI</span>
                         )}
                     </div>
                     
-                    {/* Primary Action Button (Download PDF Button) */}
+                    {/* Primary Action Button (Download PDF Button) (Column 4) */}
                     <button
                         onClick={handleGeneratePDF}
-                        className="w-full md:w-auto bg-gray-500 text-white px-8 py-3 rounded-md hover:bg-gray-600 font-semibold transition flex items-center justify-center gap-2"
+                        className="w-full bg-gray-500 text-white px-8 py-3 rounded-md hover:bg-gray-600 font-semibold transition flex items-center justify-center gap-2"
                         disabled={!selectedRecord} 
                     >
                         <Download size={20} /> Download PDF Report
@@ -518,7 +545,7 @@ const QCProbeWorkstation = ({ currentEmployee }) => {
                 {/* 2. IMEI/Firmware Records Accordion */}
                 <div className="mb-6 p-6 border rounded-xl bg-gray-50">
                     <h2 className="font-bold text-gray-800 text-xl flex items-center gap-2 mb-4 pb-2 border-b border-gray-300">
-                        <Archive size={22} /> **Fetched IMEI/Production Records** ({imeiRecords.length} found)
+                        <Archive size={22} /> **Fetched IMEI/Production Records** ({filteredImeiRecords.length} found)
                     </h2>
 
                     {loadingFirmware && (
@@ -529,9 +556,9 @@ const QCProbeWorkstation = ({ currentEmployee }) => {
                     
                     {/* Accordion Container */}
                     <div className="space-y-3">
-                        {imeiRecords.map((record, index) => {
+                        {filteredImeiRecords.map((record, index) => { 
                             const recordChecksComplete = Object.values(record.qcChecks).every(Boolean);
-                            const isLocked = record.isQcCompleted; // Use the new flag
+                            const isLocked = record.isQcCompleted; 
 
                             return (
                             <div key={record.imeiNo || index} className="border border-gray-300 rounded-xl overflow-hidden shadow-md">
@@ -690,7 +717,14 @@ const QCProbeWorkstation = ({ currentEmployee }) => {
                                 </div>
                             </div>
                         )})}
-                        {imeiRecords.length === 0 && !loadingFirmware && (
+
+                        {/* Message for no records found */}
+                        {filteredImeiRecords.length === 0 && !loadingFirmware && (
+                             <div className="text-center p-4 bg-yellow-100 text-yellow-800 rounded-md font-medium">
+                                {imeiFilter ? `No IMEI records found matching "${imeiFilter}".` : 'No IMEI records found.'}
+                             </div>
+                        )}
+                        {imeiRecords.length === 0 && !loadingFirmware && !imeiFilter && (
                              <div className="text-center p-4 bg-red-100 text-red-700 rounded-md font-medium">
                                 No IMEI records found. Check API or Token.
                              </div>
