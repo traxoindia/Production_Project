@@ -26,6 +26,7 @@ import AssignWork from './pages/AssignWork';
 import Navbar3 from './pages/Navbar3';
 import AssignWork1 from './pages/AssignWork1';
 import Work from './pages/Work';
+import Team from './pages/Team';
 
 // ----------------------------
 // FORM CONTAINER COMPONENT
@@ -182,6 +183,14 @@ export default function App() {
                     element={
                         <ProtectedRoute>
                             <Work />
+                        </ProtectedRoute>
+                    }
+                />
+                 <Route
+                    path="/superadmin/team"
+                    element={
+                        <ProtectedRoute>
+                            <Team />
                         </ProtectedRoute>
                     }
                 />

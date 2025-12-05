@@ -15,16 +15,16 @@ import { toast } from "react-toastify";
 const FETCH_IMEI_LIST_API =
   "https://vanaras.onrender.com/api/v1/superadmin/fetchSolderingDetailsandImeiNo";
 const MARK_BATTERY_COMPLETE_API =
-  "https://vanaras.onrender.com/api/v1/superadmin/addBatteryConnectionDetails"; 
+  "https://vanaras.onrender.com/api/v1/superadmin/addBatteryConnectionDetails";
 const VERIFY_SOLDERING_API =
-  "https://vanaras.onrender.com/api/v1/superadmin/verifySolderingDetails"; 
+  "https://vanaras.onrender.com/api/v1/superadmin/verifySolderingDetails";
 
 // ----------------------------------------------------------------------
 // ## 1. Task UI Component: Battery Connection & Capacitor (The Form)
 // ----------------------------------------------------------------------
 const BatteryConnectionForm = ({ imeiEntry, onStatusChange }) => {
   const [voltage, setVoltage] = useState("");
-  const [batteryType, setBatteryType] = useState(""); 
+  const [batteryType, setBatteryType] = useState("");
   const [connectionChecks, setConnectionChecks] = useState({
     batteryConnected: false,
     capacitorConnected: false,
@@ -55,11 +55,11 @@ const BatteryConnectionForm = ({ imeiEntry, onStatusChange }) => {
       const token = localStorage.getItem("token");
 
       const payload = {
-        imeiNo: imeiEntry.imeiNo, 
+        imeiNo: imeiEntry.imeiNo,
         batteryType: batteryType,
         voltage: parseFloat(voltage),
-        batteryConnectedStatus: connectionChecks.batteryConnected, 
-        capacitorConnectedStatus: connectionChecks.capacitorConnected, 
+        batteryConnectedStatus: connectionChecks.batteryConnected,
+        capacitorConnectedStatus: connectionChecks.capacitorConnected,
       };
 
       const response = await fetch(MARK_BATTERY_COMPLETE_API, {
@@ -107,15 +107,17 @@ const BatteryConnectionForm = ({ imeiEntry, onStatusChange }) => {
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Battery Type <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
+            <select
               value={batteryType}
               onChange={(e) => setBatteryType(e.target.value)}
-              placeholder="e.g., LFP 3.2V 2Ah"
               className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-green-500 focus:outline-none"
               required
               disabled={checkboxDisabled}
-            />
+            >
+              <option value="">Select Battery Type</option>
+              <option value="Lithium-Ion">Lithium-Ion</option>
+             
+            </select>
           </div>
 
           {/* Voltage Input */}
@@ -186,7 +188,7 @@ const BatteryConnectionForm = ({ imeiEntry, onStatusChange }) => {
           {isCompletedLocally ? (
             <span className="px-6 py-3 text-sm font-bold text-green-700 border border-green-300 rounded-lg">
               Passed
-            </span> 
+            </span>
           ) : (
             <button
               type="submit"
@@ -216,11 +218,11 @@ const BatteryConnectionWorkstation = ({ assignment }) => {
   const [listLoading, setListLoading] = useState(true);
   const [activeImeiId, setActiveImeiId] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  
-  const [verifyingImeis, setVerifyingImeis] = useState({}); 
+
+  const [verifyingImeis, setVerifyingImeis] = useState({});
 
   // >>> NEW STATE FOR FILTERING <<<
-  const [filterImei, setFilterImei] = useState(''); 
+  const [filterImei, setFilterImei] = useState('');
 
   const fetchIMEIList = async () => {
     setListLoading(true);
@@ -245,8 +247,8 @@ const BatteryConnectionWorkstation = ({ assignment }) => {
           ...item,
           _id: imeiId,
           imeiNo: item.barcodeImeiId?.imeiNo || "N/A",
-          isReady: item.status_Soldering === true, 
-          isComplete: item.batteryConnectionStatus === true, 
+          isReady: item.status_Soldering === true,
+          isComplete: item.batteryConnectionStatus === true,
         };
 
         if (formatted.isReady && !formatted.isComplete && !firstOpen) {
@@ -257,7 +259,7 @@ const BatteryConnectionWorkstation = ({ assignment }) => {
       });
 
       setImeiData(mapped);
-      
+
     } catch (error) {
       console.error(error);
       toast.error("Failed to fetch IMEI list.");
@@ -271,7 +273,7 @@ const BatteryConnectionWorkstation = ({ assignment }) => {
   }, [refreshTrigger]);
 
   const handleImeiComplete = () => {
-    setActiveImeiId(null); 
+    setActiveImeiId(null);
     setRefreshTrigger(prev => prev + 1);
   };
 
@@ -280,10 +282,10 @@ const BatteryConnectionWorkstation = ({ assignment }) => {
     const imeiNo = imeiEntry.imeiNo;
 
     setVerifyingImeis(prev => ({ ...prev, [id]: true }));
-    
+
     try {
       const token = localStorage.getItem("token");
-      
+
       const payload = { imeiNo };
 
       const response = await fetch(VERIFY_SOLDERING_API, {
@@ -300,21 +302,21 @@ const BatteryConnectionWorkstation = ({ assignment }) => {
       if (!response.ok || !data.success) {
         const errorMessage = data.message || "Failed to verify soldering.";
         if (errorMessage.includes("Some fields are not true")) {
-             toast.error(
-                `IMEI ${imeiNo}: Verification failed. Not all 17 soldering fields were completed in the previous step.`,
-                { position: "top-center", autoClose: 5000 }
-            );
+          toast.error(
+            `IMEI ${imeiNo}: Verification failed. Not all 17 soldering fields were completed in the previous step.`,
+            { position: "top-center", autoClose: 5000 }
+          );
         } else {
-             throw new Error(errorMessage);
+          throw new Error(errorMessage);
         }
       } else {
         toast.success(`Soldering verified for IMEI ${imeiNo}. Ready for battery!`, {
-            position: "top-center",
-            autoClose: 3000,
+          position: "top-center",
+          autoClose: 3000,
         });
 
         // Update isReady status locally to allow the form to open
-        setImeiData(prevData => prevData.map(item => 
+        setImeiData(prevData => prevData.map(item =>
           item._id === id ? { ...item, isReady: true } : item
         ));
 
@@ -324,15 +326,15 @@ const BatteryConnectionWorkstation = ({ assignment }) => {
     } catch (error) {
       console.error("Soldering Verification Error:", error);
       if (!error.message.includes("Some fields are not true")) {
-          toast.error(`Verification failed for IMEI ${imeiNo}: ${error.message}`, {
-            position: "bottom-right",
-          });
+        toast.error(`Verification failed for IMEI ${imeiNo}: ${error.message}`, {
+          position: "bottom-right",
+        });
       }
     } finally {
       setVerifyingImeis(prev => {
-          const newState = { ...prev };
-          delete newState[id];
-          return newState;
+        const newState = { ...prev };
+        delete newState[id];
+        return newState;
       });
     }
   };
@@ -341,33 +343,33 @@ const BatteryConnectionWorkstation = ({ assignment }) => {
     const id = imeiEntry._id;
 
     if (imeiEntry.isComplete) {
-        return; // Do nothing if complete
+      return; // Do nothing if complete
     }
 
     if (imeiEntry.isReady) {
-        setActiveImeiId((prev) => (prev === id ? null : id));
+      setActiveImeiId((prev) => (prev === id ? null : id));
     } else {
-        toast.info("Please click the 'Verify Soldering' button to confirm 17 points are done.", {
-            position: "bottom-right",
-        });
+      toast.info("Please click the 'Verify Soldering' button to confirm 17 points are done.", {
+        position: "bottom-right",
+      });
     }
   };
 
   // >>> FILTERING LOGIC <<<
   const handleFilterChange = (e) => {
     // 1. Strip non-digits
-    const value = e.target.value.replace(/[^0-9]/g, ''); 
+    const value = e.target.value.replace(/[^0-9]/g, '');
     // 2. Limit to 15 digits
-    setFilterImei(value.slice(0, 15)); 
+    setFilterImei(value.slice(0, 15));
     // Optionally close the accordion when filtering starts
     if (value.length > 0) {
-        setActiveImeiId(null);
+      setActiveImeiId(null);
     }
   };
 
   // Filter the data based on the current input value
-  const filteredImeis = imeiData.filter(imei => 
-      imei.imeiNo && imei.imeiNo.includes(filterImei)
+  const filteredImeis = imeiData.filter(imei =>
+    imei.imeiNo && imei.imeiNo.includes(filterImei)
   );
   // >>> END FILTERING LOGIC <<<
 
@@ -383,21 +385,21 @@ const BatteryConnectionWorkstation = ({ assignment }) => {
         </div>
 
         <div className="bg-white p-8 rounded-b-2xl shadow-xl space-y-6">
-          
+
           {/* NEW: IMEI Filter Input Field */}
           <div className="mb-6">
-              <label htmlFor="imei-filter" className="block text-sm font-medium text-gray-700 mb-2">
-                  Filter by **IMEI Number** (15 Digits) 🔎
-              </label>
-              <input
-                  type="text"
-                  id="imei-filter"
-                  value={filterImei}
-                  onChange={handleFilterChange}
-                  placeholder="Enter 15-digit IMEI"
-                  maxLength={15}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition duration-150"
-              />
+            <label htmlFor="imei-filter" className="block text-sm font-medium text-gray-700 mb-2">
+              Filter by **IMEI Number** (15 Digits) 🔎
+            </label>
+            <input
+              type="text"
+              id="imei-filter"
+              value={filterImei}
+              onChange={handleFilterChange}
+              placeholder="Enter 15-digit IMEI"
+              maxLength={15}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition duration-150"
+            />
           </div>
           {/* END NEW IMEI Filter Input Field */}
 
@@ -405,31 +407,31 @@ const BatteryConnectionWorkstation = ({ assignment }) => {
             <div className="text-center py-10">Loading IMEI list...</div>
           ) : filteredImeis.length === 0 ? ( // Check filteredImeis length
             <div className="text-center py-10 text-gray-500">
-                {filterImei ? `No IMEI found matching "${filterImei}".` : 'No units found requiring battery connection.'}
+              {filterImei ? `No IMEI found matching "${filterImei}".` : 'No units found requiring battery connection.'}
             </div>
           ) : (
             <div className="space-y-3">
               {filteredImeis.map((imei) => { // Map over filteredImeis
                 const id = imei._id;
                 const isOpen = activeImeiId === id;
-                const isImeiVerifying = verifyingImeis[id] === true; 
-                const isBatteryPassed = imei.isComplete; 
+                const isImeiVerifying = verifyingImeis[id] === true;
+                const isBatteryPassed = imei.isComplete;
 
                 let headerClass = "bg-gray-50";
                 let icon = <Clock className="text-gray-500" />;
                 let statusText = "Soldering Pending";
 
                 if (isBatteryPassed) {
-                    headerClass = "bg-green-100 cursor-default";
-                    icon = <CheckCircle className="text-green-700" />;
-                    statusText = "Passed"; 
+                  headerClass = "bg-green-100 cursor-default";
+                  icon = <CheckCircle className="text-green-700" />;
+                  statusText = "Passed";
                 } else if (imei.isReady) {
-                    headerClass = "bg-yellow-50 hover:bg-yellow-100 cursor-pointer";
-                    icon = <Lightbulb className="text-yellow-600" />;
-                    statusText = "Ready for Battery Connection";
+                  headerClass = "bg-yellow-50 hover:bg-yellow-100 cursor-pointer";
+                  icon = <Lightbulb className="text-yellow-600" />;
+                  statusText = "Ready for Battery Connection";
                 } else {
-                    headerClass = "bg-red-50 cursor-default";
-                    icon = <XCircle className="text-red-700" />;
+                  headerClass = "bg-red-50 cursor-default";
+                  icon = <XCircle className="text-red-700" />;
                 }
 
 
@@ -448,7 +450,7 @@ const BatteryConnectionWorkstation = ({ assignment }) => {
                         {icon}
                         <span className="font-mono text-lg font-bold">{imei.imeiNo}</span>
                         <span className="ml-4 px-3 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-700">
-                            {statusText}
+                          {statusText}
                         </span>
                       </div>
 
@@ -456,32 +458,31 @@ const BatteryConnectionWorkstation = ({ assignment }) => {
                       <div className="flex items-center gap-4">
                         {/* 1. VERIFY BUTTON (Only shown if NOT ready and NOT complete) */}
                         {!isBatteryPassed && !imei.isReady && (
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation(); 
-                                    handleVerifySoldering(imei);
-                                }}
-                                className="px-4 py-2 bg-blue-600 text-white font-semibold text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 transition-colors"
-                                disabled={isImeiVerifying} 
-                            >
-                                {isImeiVerifying ? (
-                                    "Verifying..."
-                                ) : (
-                                    <>
-                                        <CheckSquare size={18} />
-                                        Verify Soldering (17 Points)
-                                    </>
-                                )}
-                            </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleVerifySoldering(imei);
+                            }}
+                            className="px-4 py-2 bg-blue-600 text-white font-semibold text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 transition-colors"
+                            disabled={isImeiVerifying}
+                          >
+                            {isImeiVerifying ? (
+                              "Verifying..."
+                            ) : (
+                              <>
+                                <CheckSquare size={18} />
+                                Verify Soldering (17 Points)
+                              </>
+                            )}
+                          </button>
                         )}
 
                         {/* 2. CHEVRON (Only shown if ready and not complete) */}
                         {imei.isReady && !isBatteryPassed && (
-                            <ChevronDown
-                              className={`transform transition-transform ${
-                                isOpen ? "rotate-180" : ""
+                          <ChevronDown
+                            className={`transform transition-transform ${isOpen ? "rotate-180" : ""
                               }`}
-                            />
+                          />
                         )}
                       </div>
                     </div>
@@ -496,10 +497,10 @@ const BatteryConnectionWorkstation = ({ assignment }) => {
 
                     {/* Completion Message */}
                     {isBatteryPassed && (
-                        <div className="p-4 bg-green-50 text-green-700 text-sm border-t border-green-300 flex items-center gap-2">
-                            <CheckCircle size={16} /> 
-                            <span>This step is **Passed**.</span>
-                        </div>
+                      <div className="p-4 bg-green-50 text-green-700 text-sm border-t border-green-300 flex items-center gap-2">
+                        <CheckCircle size={16} />
+                        <span>This step is **Passed**.</span>
+                      </div>
                     )}
                   </div>
                 );

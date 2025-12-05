@@ -145,7 +145,7 @@ const IndividualChecklist = ({ imeiEntry, onStatusChange }) => {
                                 : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
                     disabled={isCompletedLocally || isSaving}
                 >
-                    {isCompletedLocally ? 'QC Passed' : allChecked ? 'Deselect All' : 'Select All Points'}
+                    {isCompletedLocally ? ' Passed' : allChecked ? 'Deselect All' : 'Select All Points'}
                 </button>
             </div>
 
