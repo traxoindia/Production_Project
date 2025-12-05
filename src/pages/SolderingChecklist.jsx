@@ -100,7 +100,7 @@ const IndividualChecklist = ({ imeiEntry, onStatusChange }) => {
             }
 
             // 2. SUCCESS LOGIC
-            toast.success(`QC successful and details saved for IMEI ${imeiEntry.imeiNo}.`, { position: 'top-center' });
+            toast.success(` successful and details saved for IMEI ${imeiEntry.imeiNo}.`, { position: 'top-center' });
 
             // 3. Disable UI locally and notify parent
             setIsCompletedLocally(true);
@@ -410,7 +410,7 @@ const SolderingChecklist = ({ assignment }) => {
                                             {/* Action Button / Status Display */}
                                             <div>
                                                 {isCompleted ? (
-                                                    <span className="font-bold text-green-700">QC Passed</span>
+                                                    <span className="font-bold text-green-700"> Passed</span>
                                                 ) : isUnlocked || hasStatusOne ? (
                                                     <button
                                                         onClick={() => handleAccordionToggle(imeiEntry._id)}
