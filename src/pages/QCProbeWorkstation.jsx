@@ -16,21 +16,21 @@ const QC_SUBMIT_API = "https://vanaras.onrender.com/api/v1/superadmin/QualityChe
 
 // --- Checklist Definitions ---
 const CHECKLIST_ITEMS = {
-    probeConnectivity: '1. Probe/Pin Connectivity Check',
-    powerSupply: '2. Power Supply Voltage Verification (12V)',
-    capacitorCheck: '3. Capacitor/Backup Battery Connection',
-    terminalCleanliness: '4. Terminal/Housing Cleanliness',
-    signalIntegrity: '5. Signal Integrity Test (e.g., USB Data Lines)',
-    cableFlex: '6. Cable Strain/Flex Test',
-    bootSequence: '7. Boot Sequence Confirmation (LED Check)',
-    gpsFix: '8. GPS Cold/Hot Fix Time Verification',
-    gsmConnection: '9. GSM Network Registration Status',
+    probeConnectivity: '1.PCB S.No.',
+    powerSupply: '2.Check the device ID on the server for GPS, GSM signal',
+    capacitorCheck: '3.Check the status of connection of device & battery status in server.',
+    terminalCleanliness: '4.Check the indication of LED on the device for stability of signal',
+    signalIntegrity: '5. Check for PCB tightness & screw on PCB',
+    cableFlex: '6.Conformal coating has to be done on both sides of the PCA & check solder ball on both side of PCA',
+    bootSequence: '7.Check for the S.No. on PCA',
+    gpsFix: '8.Check for the glue & cable routing',
+    gsmConnection: '9.Product Damage, Dust, Cleanliness & Ensure the cabinet screws are tighten properly',
     identificationCheck: '10. Product ID/IMEI Match on Sticker',
     fwVersionMatch: '11. Firmware Version Consistency Check',
     assemblyIntegrity: '12. Physical Assembly Integrity (Screw Torque)',
-    housingSeal: '13. Housing Seal/Water Resistance Check',
-    labelPlacement: '14. Label Placement and Adhesion',
-    qrScan: '15. QR Code Readability Scan Test',
+    housingSeal: '13.Check glue application and proper cable routing',
+    labelPlacement: '14.Verify LED indication on device for signal stability',
+    qrScan: '15. Verify PCB serial number',
     finalVisual: '16. Final Visual Inspection (No Scratches)',
     packingMaterial: '17. Packing Material Integrity'
 };
