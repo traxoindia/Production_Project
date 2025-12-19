@@ -23,7 +23,7 @@ const SESSION_SL_COUNTER_KEY = "traxo_sl_counter";
 const getFormattedDate = () => {
   const date = new Date();
   const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+  const month = String(date.getMonth() + 1).padStart(2, '0'); 
   const year = date.getFullYear();
   return `${day}${month}${year}`;
 };
@@ -32,52 +32,36 @@ const getFormattedDate = () => {
 // ## 1. Individual Device Update Form
 // ----------------------------------------------------------------------
 const FirmwareUpdateForm = ({ imeiEntry, onUpdateComplete }) => {
-  // FIX APPLIED: Corrected typo from imeidEntry to imeiEntry
   const [iccidNo, setIccidNo] = useState(imeiEntry.iccidNo || ''); 
-  // slNo state is handled differently: initialized by generation function
   const [slNo, setSlNo] = useState(imeiEntry.slNo || '');
-  
   const [updateStatus, setUpdateStatus] = useState('idle');
   const [progress, setProgress] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  
   const [isCompletedLocally, setIsCompletedLocally] = useState(imeiEntry.isComplete);
 
   // --- SERIAL NUMBER GENERATION LOGIC ---
   useEffect(() => {
-    // Check if the current entry already has a serial number (e.g., loaded from API)
-    if (imeiEntry.slNo) {
-        setSlNo(imeiEntry.slNo);
-        return;
-    }
-    
-    // --- 1. Get/Initialize Counter ---
-    const storedCounter = sessionStorage.getItem(SESSION_SL_COUNTER_KEY);
-    let nextCounter = SERIAL_SUFFIX_START;
+    // Only auto-generate if slNo is currently empty (not provided by API or user)
+    if (!slNo) {
+        const storedCounter = sessionStorage.getItem(SESSION_SL_COUNTER_KEY);
+        let nextCounter = SERIAL_SUFFIX_START;
 
-    if (storedCounter) {
-        // If stored, use the stored value (ensures sequential numbers within the session)
-        nextCounter = parseInt(storedCounter, 10);
-        // Ensure counter hasn't regressed below the starting point
-        if (nextCounter < SERIAL_SUFFIX_START) {
-             nextCounter = SERIAL_SUFFIX_START;
+        if (storedCounter) {
+            nextCounter = parseInt(storedCounter, 10);
+            if (nextCounter < SERIAL_SUFFIX_START) nextCounter = SERIAL_SUFFIX_START;
         }
+
+        const datePart = getFormattedDate();
+        const slSuffix = `A${String(nextCounter).padStart(4, '0')}`;
+        const generatedSlNo = `${SERIAL_PREFIX}${datePart}${slSuffix}`;
+        
+        setSlNo(generatedSlNo);
+        
+        // We don't increment yet; we increment only when the user successfully submits 
+        // OR we can increment now to keep the sequence unique for the next accordion opened.
+        sessionStorage.setItem(SESSION_SL_COUNTER_KEY, nextCounter + 1);
     }
-
-    // --- 2. Generate Serial Number ---
-    const datePart = getFormattedDate();
-    // Format the number part (AXXXX, starting from 8037)
-    const slSuffix = `A${String(nextCounter).padStart(4, '0')}`;
-    const generatedSlNo = `${SERIAL_PREFIX}${datePart}${slSuffix}`;
-    
-    // --- 3. Update State and Session Storage ---
-    setSlNo(generatedSlNo);
-    
-    // Increment the counter for the *next* device
-    sessionStorage.setItem(SESSION_SL_COUNTER_KEY, nextCounter + 1);
-
-  }, [imeiEntry.slNo]); 
-  // --- END SERIAL NUMBER GENERATION LOGIC ---
+  }, [slNo]); 
 
 
   if (isCompletedLocally && updateStatus === 'idle') {
@@ -91,18 +75,15 @@ const FirmwareUpdateForm = ({ imeiEntry, onUpdateComplete }) => {
   }
 
   const handleFirmwarePost = async () => {
-    const token = localStorage.getItem("token"); // Get token
+    const token = localStorage.getItem("token");
     
-    // API requires imeiNo, iccidNo, slNo (using local state values)
     const postData = {
         imeiNo: imeiEntry.imeiNo,
         iccidNo: iccidNo,
-        slNo: slNo, // Use the generated/set slNo
+        slNo: slNo, 
     };
     
-    // Basic validation before API call
     if (!postData.imeiNo || !postData.iccidNo || !postData.slNo) {
-        // This should theoretically not happen if slNo is auto-generated
         toast.error('IMEI, ICCID No, and Serial No must all be provided.', { position: "top-center" });
         return false;
     }
@@ -121,8 +102,6 @@ const FirmwareUpdateForm = ({ imeiEntry, onUpdateComplete }) => {
             const errorData = await response.json();
             throw new Error(errorData.message || `API failed with status: ${response.status}`);
         }
-        
-        // Success
         return true; 
 
     } catch (error) {
@@ -145,14 +124,12 @@ const FirmwareUpdateForm = ({ imeiEntry, onUpdateComplete }) => {
     setUpdateStatus('uploading');
     setProgress(0);
 
-    // --- START: FIRMWARE UPDATE PROCESS SIMULATION ---
     const interval = setInterval(() => {
         setProgress(prev => {
             if (prev >= 100) {
                 clearInterval(interval);
                 setUpdateStatus('verifying');
                 
-                // 1. Verification/POST delay
                 setTimeout(async () => {
                     const postSuccess = await handleFirmwarePost();
 
@@ -165,16 +142,13 @@ const FirmwareUpdateForm = ({ imeiEntry, onUpdateComplete }) => {
                         setUpdateStatus('idle'); 
                         setProgress(0);
                     }
-                    
                     setIsLoading(false);
-
                 }, 2000); 
                 return 100;
             }
             return prev + 10;
         });
     }, 300);
-    // --- END: FIRMWARE UPDATE PROCESS SIMULATION ---
   };
 
   return (
@@ -197,7 +171,7 @@ const FirmwareUpdateForm = ({ imeiEntry, onUpdateComplete }) => {
             />
           </div>
 
-          {/* Serial No (slNo) Input Field - Now auto-generated and read-only */}
+          {/* Serial No (slNo) Input Field - Manual Edit Allowed */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Serial No (SL No) <span className="text-red-500">*</span>
@@ -205,14 +179,14 @@ const FirmwareUpdateForm = ({ imeiEntry, onUpdateComplete }) => {
             <input
               type="text"
               value={slNo}
-              placeholder="Auto Generating Serial Number..."
-              className="w-full px-4 py-3 border-2 border-purple-500 bg-purple-50 rounded-lg focus:outline-none cursor-default font-mono font-bold"
+              onChange={(e) => setSlNo(e.target.value)}
+              placeholder="Enter Serial Number"
+              className="w-full px-4 py-3 border-2 border-purple-500 bg-purple-50 rounded-lg focus:border-purple-600 focus:outline-none font-mono font-bold"
               required
-              // Disabled and read-only because it's auto-generated
-              disabled={true} 
+              disabled={isLoading || isCompletedLocally} 
             />
             <p className="mt-1 text-xs text-gray-500">
-                Format: TIA/DDMMYYYYAXXXX. Auto-generated and incremented per session.
+                You can manually edit the auto-generated number if required.
             </p>
           </div>
         </div>
@@ -238,10 +212,8 @@ const FirmwareUpdateForm = ({ imeiEntry, onUpdateComplete }) => {
           </div>
         )}
 
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
-            <p className="text-sm text-yellow-800">
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded text-sm text-yellow-800">
                 ⚠ Device: **{imeiEntry.imeiNo}**. Ensure connection before sending the update request.
-            </p>
         </div>
 
         <div className="pt-4 flex justify-end">
@@ -261,58 +233,40 @@ const FirmwareUpdateForm = ({ imeiEntry, onUpdateComplete }) => {
 // ----------------------------------------------------------------------
 // ## 2. Main Component: FirmwareUpdateWorkstation
 // ----------------------------------------------------------------------
-const FirmwareUpdateWorkstation = ({ assignment }) => {
+const FirmwareUpdateWorkstation = () => {
   const [imeiData, setImeiData] = useState([]);
   const [listLoading, setListLoading] = useState(true);
   const [activeImeiId, setActiveImeiId] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  
   const [filterImei, setFilterImei] = useState(''); 
 
   const fetchIMEIList = useCallback(async () => {
     setListLoading(true);
-
     try {
       const token = localStorage.getItem("token");
-
       const response = await fetch(FETCH_BATTERY_DETAILS_API, {
         method: "GET",
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch device list: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
 
       const data = await response.json();
-      
       const allImeis = data.batteryConnectionDetailsList || []; 
       
-      const mapped = allImeis.map((item) => {
-        const uniqueId = item.imeiNo; 
-        
-        // A device is considered 'Complete' (cannot be updated) if overAllassemblyStatus is TRUE.
-        const isComplete = item.overAllassemblyStatus === true; 
-        
-        // A device is 'Ready' for listing if battery is connected (assuming this is the first filter)
-        const isReady = item.batteryConnectedStatus === true; 
-
-        return {
+      const mapped = allImeis.map((item) => ({
           ...item,
-          _id: uniqueId, 
+          _id: item.imeiNo, 
           imeiNo: item.imeiNo || "N/A",
           iccidNo: item.iccidNo || '',
           slNo: item.slNo || '',
-          currentVersion: 'N/A', 
-          isComplete: isComplete,
-          isReady: isReady, 
-        };
-      }).filter(item => item.isReady); // Only show devices that are ready
+          isComplete: item.overAllassemblyStatus === true, 
+          isReady: item.batteryConnectedStatus === true, 
+      })).filter(item => item.isReady);
 
       setImeiData(mapped);
-      
     } catch (error) {
-      console.error("Device List Fetch Error:", error);
+      console.error("Fetch Error:", error);
       toast.error(`Failed to fetch IMEI list: ${error.message}`);
     } finally {
       setListLoading(false);
@@ -324,11 +278,9 @@ const FirmwareUpdateWorkstation = ({ assignment }) => {
   }, [refreshTrigger, fetchIMEIList]); 
 
   const handleUpdateComplete = (completedImeiId) => {
-    // When a firmware request is successfully POSTed, mark it as complete
     setImeiData(prevData => prevData.map(item => 
         item._id === completedImeiId ? { ...item, isComplete: true } : item
     ));
-    // Close the accordion after completion
     setActiveImeiId(null);
   };
 
@@ -337,18 +289,14 @@ const FirmwareUpdateWorkstation = ({ assignment }) => {
   };
   
   const handleRefreshClick = () => {
-      // Clear the filter when refreshing data
       setFilterImei('');
-      // Toggle refreshTrigger to re-run useEffect
       setRefreshTrigger(prev => prev + 1);
   };
 
-  // --- Filtering Logic ---
   const handleFilterChange = (e) => {
     const value = e.target.value.replace(/[^0-9]/g, ''); 
     setFilterImei(value.slice(0, 15)); 
     if (value.length > 0) {
-        // Find the first matching IMEI and open it immediately for quick input
         const matchingImei = imeiData.find(imei => imei.imeiNo.includes(value.slice(0, 15)));
         if (matchingImei && !matchingImei.isComplete) {
              setActiveImeiId(matchingImei._id);
@@ -363,12 +311,11 @@ const FirmwareUpdateWorkstation = ({ assignment }) => {
   const filteredImeis = imeiData.filter(imei => 
       imei.imeiNo && imei.imeiNo.includes(filterImei)
   );
-  // --- End Filtering Logic ---
 
   return (
     <div className="p-4 sm:p-8">
       <div className="max-w-5xl mx-auto">
-        <div className="bg-gradient-to-r from-purple-600 to-pink-700 text-white p-6 rounded-t-2xl">
+        <div className="bg-gradient-to-r from-purple-600 to-pink-700 text-white p-6 rounded-t-2xl shadow-lg">
           <h3 className="text-2xl font-bold flex items-center gap-3">
             <Cpu size={28} />
             Firmware Update Workstation
@@ -377,8 +324,6 @@ const FirmwareUpdateWorkstation = ({ assignment }) => {
         </div>
 
         <div className="bg-white p-8 rounded-b-2xl shadow-xl space-y-6">
-          
-          {/* Controls and Filter */}
           <div className="flex justify-between items-end gap-4 mb-6">
               <div className="flex-grow">
                 <label htmlFor="imei-filter" className="block text-sm font-medium text-gray-700 mb-2">
@@ -397,7 +342,7 @@ const FirmwareUpdateWorkstation = ({ assignment }) => {
               <button
                 onClick={handleRefreshClick}
                 disabled={listLoading}
-                className="px-4 py-2 bg-gray-100 border border-gray-300 text-gray-700 rounded-lg flex items-center gap-2 hover:bg-gray-200 disabled:opacity-50 transition"
+                className="px-4 py-2 bg-gray-100 border border-gray-300 text-gray-700 rounded-lg flex items-center gap-2 hover:bg-gray-200 disabled:opacity-50 transition shadow-sm"
               >
                 <RefreshCw size={16} className={listLoading ? 'animate-spin' : ''} />
                 Refresh List
@@ -405,70 +350,54 @@ const FirmwareUpdateWorkstation = ({ assignment }) => {
           </div>
 
           {listLoading ? (
-            <div className="text-center py-10">Loading device list...</div>
+            <div className="text-center py-10 flex flex-col items-center gap-3">
+                <RefreshCw className="animate-spin text-purple-600" size={32} />
+                <p className="text-gray-500">Loading device list...</p>
+            </div>
           ) : filteredImeis.length === 0 ? (
-            <div className="text-center py-10 text-gray-500">
+            <div className="text-center py-10 text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-300">
                 {filterImei ? `No IMEI found matching "${filterImei}".` : 'No units are currently passing the battery connection check.'}
             </div>
           ) : (
             <div className="space-y-3">
               {filteredImeis.map((imei) => {
-                const id = imei._id;
-                const isOpen = activeImeiId === id;
-                const isComplete = imei.isComplete; // Determined by overAllassemblyStatus
-
-                let headerClass = isComplete ? "bg-green-100 cursor-default" : "bg-gray-50 hover:bg-gray-100 cursor-pointer";
-                let icon = isComplete ? <CheckCircle className="text-green-700" /> : <Zap className="text-purple-500" />;
-                let statusText = isComplete ? "Overall Assembly Passed (Done)" : "Ready for Firmware Request";
-
+                const isComplete = imei.isComplete;
+                const isOpen = activeImeiId === imei._id;
 
                 return (
-                  <div
-                    key={imei._id}
-                    className="border border-gray-200 rounded-lg overflow-hidden"
-                  >
-                    {/* HEADER */}
+                  <div key={imei._id} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
                     <div
                       onClick={() => !isComplete && handleAccordionToggle(imei._id)}
-                      className={`p-3 flex justify-between items-center transition-all ${headerClass}`}
+                      className={`p-3 flex justify-between items-center transition-all ${isComplete ? "bg-green-50" : "bg-gray-50 hover:bg-gray-100 cursor-pointer"}`}
                     >
                       <div className="flex items-center gap-3">
-                        {icon}
+                        {isComplete ? <CheckCircle className="text-green-600" /> : <Zap className="text-purple-500" />}
                         <div>
                             <span className="font-mono text-lg font-bold">{imei.imeiNo}</span>
                             <span className="ml-4 px-3 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-700">
-                                Status: Battery Connected
+                                Battery Connected
                             </span>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-4">
                         <span className={`text-sm font-semibold ${isComplete ? 'text-green-700' : 'text-purple-600'}`}>
-                            {statusText}
+                            {isComplete ? "Assembly Complete" : "Ready for Update"}
                         </span>
                         {!isComplete && (
-                            <ChevronDown
-                              className={`transform transition-transform ${
-                                isOpen ? "rotate-180" : ""
-                              }`}
-                            />
+                            <ChevronDown className={`transform transition-transform ${isOpen ? "rotate-180" : ""}`} />
                         )}
                       </div>
                     </div>
 
-                    {/* FORM - Only render if open AND not complete */}
                     {isOpen && !isComplete && (
-                      <FirmwareUpdateForm
-                        imeiEntry={imei}
-                        onUpdateComplete={handleUpdateComplete}
-                      />
+                      <FirmwareUpdateForm imeiEntry={imei} onUpdateComplete={handleUpdateComplete} />
                     )}
 
-                    {/* Completion Message */}
                     {isComplete && (
-                        <div className="p-4 bg-green-50 text-green-700 text-sm border-t border-green-300 flex items-center gap-2">
+                        <div className="p-4 bg-green-50 text-green-700 text-sm border-t border-green-200 flex items-center gap-2">
                             <CheckCircle size={16} /> 
-                            <span>This unit has passed the Overall Assembly check and is complete.</span>
+                            <span>This unit has passed the Overall Assembly check.</span>
                         </div>
                     )}
                   </div>
