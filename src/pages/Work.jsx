@@ -162,6 +162,7 @@ const AddBarcodeForm = ({ assignment }) => {
             }
 
             toast.success(`Barcode data saved successfully for IMEI: ${imeiNo.trim()}`, { position: "top-center" });
+            alert(`Barcode added Successfully:${imeiNo.trim()}`)
 
             // Clear input and refresh the list
             setImeiNo('');
@@ -258,27 +259,68 @@ const AddBarcodeForm = ({ assignment }) => {
                 </div>
 
                 {/* RIGHT COLUMN: Saved IMEI List (Takes 1/3 width) */}
-                <div className="lg:col-span-1 bg-white shadow-xl rounded-xl h-full border border-gray-200">
+                {/* RIGHT COLUMN: Saved IMEI List (Takes 1/3 width) */}
+                <div className="lg:col-span-1 bg-white shadow-xl rounded-xl flex flex-col h-[600px] border border-gray-200">
                     <div className="bg-gray-100 p-4 rounded-t-xl border-b flex justify-between items-center">
-                        <h4 className="text-lg font-bold text-gray-700">Recent Saved IMEIs</h4>
-                        <button onClick={() => setListRefreshTrigger(prev => prev + 1)} disabled={listLoading} className="text-sm text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
-                            {listLoading ? <RefreshCw size={14} className="animate-spin" /> : 'Refresh'}
+                        <div>
+                            <h4 className="text-lg font-bold text-gray-700">IMEI History</h4>
+                            <p className="text-xs text-gray-500">{imeiList.length} Total Records</p>
+                        </div>
+                        <button
+                            onClick={() => setListRefreshTrigger(prev => prev + 1)}
+                            disabled={listLoading}
+                            className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+                        >
+                            <RefreshCw size={18} className={`${listLoading ? "animate-spin text-indigo-500" : "text-gray-600"}`} />
                         </button>
                     </div>
-                    <div className="p-4 overflow-y-auto max-h-[500px]">
+
+                    <div className="p-4 overflow-y-auto flex-grow custom-scrollbar">
                         {listLoading ? (
-                            <p className="text-center text-gray-500">Loading history...</p>
-                        ) : imeiList.length > 0 ? (
+                            <div className="flex flex-col items-center justify-center h-full space-y-2">
+                                <RefreshCw size={24} className="animate-spin text-blue-500" />
+                                <p className="text-gray-500 text-sm">Fetching records...</p>
+                            </div>
+                        ) : imeiList && imeiList.length > 0 ? (
                             <ul className="space-y-3">
-                                {imeiList.slice(0, 20).map((item) => (
-                                    <li key={item._id || item.imeiNo} className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm font-mono break-all hover:shadow-md transition">
-                                        <span className="font-bold text-green-700 block">IMEI: {item.imeiNo}</span>
-                                        <div className="text-xs text-gray-600 mt-1">Batch: {item.batchNo} | Lot: {item.lotNo}</div>
+                                {/* We reverse it to show the most recent entry at the top */}
+                                {[...imeiList].reverse().map((item, index) => (
+                                    <li
+                                        key={item._id || index}
+                                        className="p-3 bg-white border-l-4 border-l-green-500 border-gray-200 border rounded-r-lg shadow-sm hover:shadow-md transition-all"
+                                    >
+                                        <div className="flex justify-between items-start mb-1">
+                                            <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">
+                                                IMEI Number
+                                            </span>
+                                            <span className="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-500">
+                                                #{imeiList.length - index}
+                                            </span>
+                                        </div>
+                                        <p className="font-mono font-bold text-gray-800 text-base mb-2">
+                                            {item.imeiNo || "N/A"}
+                                        </p>
+                                        <div className="grid grid-cols-1 gap-1 text-[11px] text-gray-500 border-t pt-2">
+                                            <div className="flex justify-between">
+                                                <span>Batch:</span>
+                                                <span className="font-medium text-gray-700">{item.batchNo || 'N/A'}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span>Lot:</span>
+                                                <span className="font-medium text-gray-700">{item.lotNo || 'N/A'}</span>
+                                            </div>
+                                        </div>
                                     </li>
                                 ))}
                             </ul>
                         ) : (
-                            <p className="text-center text-gray-500 p-6">No entries saved today.</p>
+                            <div className="flex flex-col items-center justify-center h-full text-center p-6">
+                                <div className="bg-gray-50 p-4 rounded-full mb-2">
+                                    <Plus size={32} className="text-gray-300" />
+                                </div>
+                                <p className="text-gray-500 font-medium">No IMEIs found</p>
+                                <p className="text-xs text-gray-400">New entries will appear here</p>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -923,7 +965,7 @@ function Work() {
             // --- Correct handling of new response structure ---
             if (data.emp) {
                 setEmployeeData(data.emp);
-                
+
                 if (Array.isArray(data.emp.assignWork)) {
                     const fetchedAssignments = data.emp.assignWork.map((assignment) => ({
                         id: assignment._id,
@@ -988,40 +1030,40 @@ function Work() {
 
     const renderAssignmentUI = (assignment) => {
 
-   
-    switch (assignment.taskTitle) {
 
-        case 'Add Barcode':
-            return <AddBarcodeForm assignment={assignment} />;
-        case 'Soldering':
-            return <SolderingChecklist assignment={assignment} />;
-        case 'Battery connection & Capacitor & add battery':
-            return <BatteryConnectionWorkstation assignment={assignment} />;;
-        case 'Frimware update':
-            return <FirmwareUpdateWorkstation assignment={assignment} />;
-        case 'QC check':
-          return <QCProbeWorkstation assignment={assignment} currentEmployee={employeeName} />;
-        case 'Print Sticker':
-            return <PrintStickerForm assignment={assignment} />;
-        default:
-            return (
-                <div>
+        switch (assignment.taskTitle) {
 
-                    <div className="p-10 text-center">
+            case 'Add Barcode':
+                return <AddBarcodeForm assignment={assignment} />;
+            case 'Soldering':
+                return <SolderingChecklist assignment={assignment} />;
+            case 'Battery connection & Capacitor & add battery':
+                return <BatteryConnectionWorkstation assignment={assignment} />;;
+            case 'Frimware update':
+                return <FirmwareUpdateWorkstation assignment={assignment} />;
+            case 'QC check':
+                return <QCProbeWorkstation assignment={assignment} currentEmployee={employeeName} />;
+            case 'Print Sticker':
+                return <PrintStickerForm assignment={assignment} />;
+            default:
+                return (
+                    <div>
 
-                        <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-8">
-                            <Package size={48} className="mx-auto text-gray-400 mb-4" />
-                            <h3 className="text-xl font-semibold text-gray-700 mb-2">Standard Task View</h3>
-                            <p className="text-gray-500 mb-6">No custom UI defined for: "{assignment.taskTitle}"</p>
-                            <button className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition">
-                                Mark as Completed
-                            </button>
+                        <div className="p-10 text-center">
+
+                            <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-8">
+                                <Package size={48} className="mx-auto text-gray-400 mb-4" />
+                                <h3 className="text-xl font-semibold text-gray-700 mb-2">Standard Task View</h3>
+                                <p className="text-gray-500 mb-6">No custom UI defined for: "{assignment.taskTitle}"</p>
+                                <button className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition">
+                                    Mark as Completed
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            );
-    }
-};
+                );
+        }
+    };
 
     return (
         <>
@@ -1119,7 +1161,7 @@ function Work() {
                                 {selectedAssignment ? (
                                     <>
                                         {/* Header moved inside renderAssignmentUI to be part of the form's layout */}
-                                        {renderAssignmentUI(selectedAssignment,employeeName)}
+                                        {renderAssignmentUI(selectedAssignment, employeeName)}
                                     </>
                                 ) : (
                                     <div className="p-20 text-center text-gray-500">
@@ -1134,7 +1176,7 @@ function Work() {
                 </div>
             </div>
 
-            
+
         </>
 
 
