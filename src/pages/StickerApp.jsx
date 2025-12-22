@@ -206,6 +206,7 @@ const TodayWorkReport = () => {
       }
 
       const result = await response.json();
+      console.log(result)
       
       if (result.data && Array.isArray(result.data) && result.data.length > 0) {
         setReportData(result.data[0]);
