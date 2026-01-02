@@ -27,6 +27,7 @@ import approvedStamp from '../Images/Approved.png';
 import SIGN from '../Images/SIGN.png';
 import Navbar1 from './Navbar1';
 import AssemblyChecklist from './AssemblyChecklist';
+import EmployeeReport from './EmployeeReport';
 
 // QC Point mappings with descriptions
 const QC_POINTS_MAPPING = {
@@ -810,7 +811,15 @@ const Reports = () => {
                         <AssemblyChecklist />
 
                     </div>
+                    
                 </div>
+                 <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-3xl p-8 border border-purple-100">
+
+
+
+                        <EmployeeReport />
+
+                    </div>
             </div>
         </>
     );
