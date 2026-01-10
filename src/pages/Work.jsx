@@ -972,13 +972,13 @@ function Work() {
                         taskTitle: assignment.workTitel || "No Title",
                         task: assignment.workDescription || "No Description",
                         assignedDate: new Date(assignment.createdAt).toLocaleDateString(),
-                        status: assignment.status ? "Completed" : "Pending",
+                        status: assignment.status ? "Completed" : "",
                     }));
 
                     setAssignments(fetchedAssignments);
 
                     // Select first pending OR first assignment
-                    const pendingAssignment = fetchedAssignments.find(a => a.status === "Pending");
+                    const pendingAssignment = fetchedAssignments.find(a => a.status === "");
                     setSelectedAssignment(pendingAssignment || fetchedAssignments[0]);
                 } else {
                     setAssignments([]);
@@ -1009,10 +1009,11 @@ function Work() {
     const getStatusColor = (status) => {
         switch (status) {
             case 'Completed': return 'bg-green-100 text-green-800';
-            case 'Pending': return 'bg-yellow-100 text-yellow-800';
+            case 'Work To Complete': return 'bg-yellow-100 text-yellow-800';
             default: return 'bg-gray-100 text-gray-800';
         }
     };
+    
 
     const getTaskIcon = (taskTitle) => {
         switch (taskTitle) {
