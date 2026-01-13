@@ -186,7 +186,7 @@ function AssemblyChecklist() {
         doc.text("FORMAT NO. F-TIA/102/01A", 10, 25);
         doc.text(`Rev. 0`, pageWidth - 20, 25, { align: 'right' });
         
-        doc.text("Date : 15.02.2023", 10, 32);
+        doc.text("Date : 22.12.2025", 10, 32);
         doc.text("Approved by : in charge production", pageWidth - 20, 32, { align: 'right' });
         
         doc.text(`Page ${imeiIndex + 1} of ${selectedImeis.length}`, pageWidth / 2, 32, { align: 'center' });
