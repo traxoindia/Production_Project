@@ -54,7 +54,7 @@ const FALLBACK_STICKER_DATA = {
   id: 'fallback',
   productName: "TRAXO ELITE",
   modelNo: "ELITE",
-  partNo: "TRAXO101",
+  partNo: "TRAXO104",
   tacNo: "CN8737",
   slNo: "TIA/06012026A8137",
   imei: "868329081621363",
