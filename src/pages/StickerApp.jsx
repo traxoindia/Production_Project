@@ -72,7 +72,7 @@ const mapApiDataToSticker = (apiItem) => {
     id: apiItem._id || apiItem.id || `${Math.random()}`,
     productName: apiItem.productName || "TRAXO ELITE",
     modelNo: apiItem.modelNo || "ELITE",
-    partNo: apiItem.partNo || "TRAXO101",
+    partNo: apiItem.partNo || "TRAXO104",
     tacNo: apiItem.tacNo || "CN8737",
     helpLine: "06782-260196 / Toll free: 1800 891 1545",
     email: "info@traxoindia.in",
