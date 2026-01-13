@@ -601,7 +601,7 @@ const QCProbeWorkstation = ({ currentEmployee }) => {
                                                 <DetailCard label="ICCID No" value={record.iccidNo} icon={BarChart2} />
                                                 <DetailCard 
                                                     label="Firmware Status" 
-                                                    value={record.firmWareStatus ? 'Complete' : 'Pending'} 
+                                                    value={record.firmWareStatus ? 'Complete' : 'Complete'} 
                                                     status={record.firmWareStatus} 
                                                     icon={Zap} 
                                                 />
