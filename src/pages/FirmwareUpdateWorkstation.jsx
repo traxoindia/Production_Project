@@ -38,9 +38,9 @@ const FirmwareUpdateForm = ({ imeiEntry, onUpdateComplete, editModeData, onCance
         headers: { Authorization: `Bearer ${token}` },
       });
       const result = await response.json();
-      // console.log(result)
       
-      console.log("Next SL No API Response:", result);
+      
+     
       
       if (result.success) {
         setSlNo(result.nextSlNo || ""); // Adjust key based on your exact API response
