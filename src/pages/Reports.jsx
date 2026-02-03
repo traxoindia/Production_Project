@@ -28,6 +28,8 @@ import SIGN from '../Images/SIGN.png';
 import Navbar1 from './Navbar1';
 import AssemblyChecklist from './AssemblyChecklist';
 import EmployeeReport from './EmployeeReport';
+import Xlsx from './Xlsx';
+
 
 // QC Point mappings with descriptions
 const QC_POINTS_MAPPING = {
@@ -492,6 +494,7 @@ const Reports = () => {
         <>
             <Navbar1 />
             <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 md:p-10">
+           
                 <div className="max-w-7xl mx-auto space-y-10">
                     {/* Header */}
                     <div className="bg-white rounded-3xl shadow-lg p-8 border border-slate-200">
@@ -520,288 +523,184 @@ const Reports = () => {
                     </div>
 
                     {/* Main Content Grid */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        {/* Left Panel - Controls */}
-                        <div className="lg:col-span-1 space-y-8">
-                            {/* Date Selection Card */}
-                            <div className="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden">
-                                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
-                                    <div className="flex items-center gap-3">
-                                        <Calendar size={28} className="text-blue-200" />
-                                        <h2 className="text-xl font-bold">Select Report Date</h2>
-                                    </div>
-                                </div>
-                                <div className="p-6 space-y-6">
-                                    <div className="space-y-4">
-                                        <label className="block text-sm font-semibold text-slate-700">
-                                            Production Date
-                                        </label>
-                                        <input
-                                            type="date"
-                                            value={selectedDate}
-                                            onChange={(e) => setSelectedDate(e.target.value)}
-                                            className="w-full px-4 py-4 bg-slate-50 border-2 border-slate-200 rounded-2xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all font-medium text-slate-800"
-                                        />
-                                    </div>
+                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    {/* 1. Left Panel - Controls & Statistics */}
+    <div className="lg:col-span-1 space-y-8">
+        {/* Date Selection Card */}
+        <div className="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
+                <div className="flex items-center gap-3">
+                    <Calendar size={28} className="text-blue-200" />
+                    <h2 className="text-xl font-bold">Select Report Date</h2>
+                </div>
+            </div>
+            <div className="p-6 space-y-6">
+                <div className="space-y-4">
+                    <label className="block text-sm font-semibold text-slate-700">
+                        Production Date
+                    </label>
+                    <input
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        className="w-full px-4 py-4 bg-slate-50 border-2 border-slate-200 rounded-2xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all font-medium text-slate-800"
+                    />
+                </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <button
-                                            onClick={fetchProductionReport}
-                                            disabled={isDateLoading || !selectedDate}
-                                            className="col-span-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            {isDateLoading ? (
-                                                <>
-                                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                                                    Loading...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Download size={20} />
-                                                    Production Report PDF
-                                                </>
-                                            )}
-                                        </button>
+                <div className="grid grid-cols-2 gap-4">
+                    <button
+                        onClick={fetchProductionReport}
+                        disabled={isDateLoading || !selectedDate}
+                        className="col-span-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isDateLoading ? (
+                            <><div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> Loading...</>
+                        ) : (
+                            <><Download size={20} /> Production Report PDF</>
+                        )}
+                    </button>
 
-                                        <button
-                                            onClick={fetchQCReport}
-                                            disabled={isModuleLoading === 'QC' || !selectedDate}
-                                            className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            {isModuleLoading === 'QC' ? "Loading..." : "View QC Data"}
-                                        </button>
+                    <button
+                        onClick={fetchQCReport}
+                        disabled={isModuleLoading === 'QC' || !selectedDate}
+                        className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isModuleLoading === 'QC' ? "Loading..." : "View QC Data"}
+                    </button>
 
-                                        <button
-                                            onClick={handleQCReportDownload}
-                                            disabled={!selectedDate}
-                                            className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <FileText size={20} />
-                                            QC PDF
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                    <button
+                        onClick={handleQCReportDownload}
+                        disabled={!selectedDate}
+                        className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <FileText size={20} />
+                        QC PDF
+                    </button>
+                </div>
+            </div>
+        </div>
 
-                            {/* Statistics Card */}
-                            {qcData.length > 0 && (
-                                <div className="bg-white rounded-3xl shadow-lg border border-slate-200 p-6">
-                                    <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                                        <BarChart3 size={20} />
-                                        QC Statistics
-                                    </h3>
-                                    <div className="space-y-4">
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-slate-600">Total Units</span>
-                                            <span className="text-xl font-bold text-slate-800">{qcData.length}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-slate-600">Passed</span>
-                                            <span className="text-xl font-bold text-green-600">{totalPassed}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-slate-600">Failed</span>
-                                            <span className="text-xl font-bold text-red-600">{totalFailed}</span>
-                                        </div>
-                                        <div className="pt-4 border-t border-slate-200">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-slate-600">Pass Rate</span>
-                                                <span className="text-2xl font-bold text-blue-600">{passRate}%</span>
-                                            </div>
-                                            <div className="mt-2 h-2 bg-slate-200 rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full bg-gradient-to-r from-green-500 to-emerald-600 rounded-full transition-all duration-500"
-                                                    style={{ width: `${passRate}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+        {/* Statistics Card */}
+        {qcData.length > 0 && (
+            <div className="bg-white rounded-3xl shadow-lg border border-slate-200 p-6">
+                <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <BarChart3 size={20} />
+                    QC Statistics
+                </h3>
+                <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                        <span className="text-slate-600">Total Units</span>
+                        <span className="text-xl font-bold text-slate-800">{qcData.length}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <span className="text-slate-600">Passed</span>
+                        <span className="text-xl font-bold text-green-600">{totalPassed}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <span className="text-slate-600">Failed</span>
+                        <span className="text-xl font-bold text-red-600">{totalFailed}</span>
+                    </div>
+                    <div className="pt-4 border-t border-slate-200">
+                        <div className="flex justify-between items-center">
+                            <span className="text-slate-600">Pass Rate</span>
+                            <span className="text-2xl font-bold text-blue-600">{passRate}%</span>
                         </div>
-
-                        {/* Right Panel - QC Data Display */}
-                        <div className="lg:col-span-2">
-                            {qcData.length > 0 ? (
-                                <div className="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden">
-                                    <div className="p-6 border-b border-slate-200">
-                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                            <div>
-                                                <h3 className="text-xl font-bold text-slate-800">
-                                                    QC Inspection Details
-                                                </h3>
-                                                <p className="text-slate-500 text-sm">
-                                                    {selectedDate} • {qcData.length} units
-                                                </p>
-                                            </div>
-                                            <div className="flex flex-wrap gap-3">
-                                                <div className="relative">
-                                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Search IMEI..."
-                                                        value={searchTerm}
-                                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                                        className="pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                    />
-                                                </div>
-                                                <select
-                                                    value={filterStatus}
-                                                    onChange={(e) => setFilterStatus(e.target.value)}
-                                                    className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                >
-                                                    <option value="all">All Status</option>
-                                                    <option value="pass">Passed Only</option>
-                                                    <option value="fail">Failed Only</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full">
-                                            <thead className="bg-slate-50 border-b border-slate-200">
-                                                <tr>
-                                                    <th className="text-left p-4 text-sm font-semibold text-slate-600">IMEI NO</th>
-                                                    <th className="text-left p-4 text-sm font-semibold text-slate-600">Status</th>
-                                                    <th className="text-left p-4 text-sm font-semibold text-slate-600">Date</th>
-                                                    <th className="text-left p-4 text-sm font-semibold text-slate-600">Details</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {filteredData.map((item, index) => {
-                                                    const passes = checkQcPass(item);
-                                                    return (
-                                                        <React.Fragment key={index}>
-                                                            <tr className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${expandedRows.includes(index) ? 'bg-blue-50' : ''}`}>
-                                                                <td className="p-4">
-                                                                    <div className="font-mono font-bold text-slate-800">
-                                                                        {item.imeiNo || "N/A"}
-                                                                    </div>
-                                                                </td>
-                                                                <td className="p-4">
-                                                                    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${passes ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                                                        {passes ? <CheckCircle size={16} /> : <XCircle size={16} />}
-                                                                        <span className="font-bold">{passes ? 'PASS' : 'FAIL'}</span>
-                                                                    </div>
-                                                                </td>
-                                                                <td className="p-4">
-                                                                    <div className="text-sm text-slate-600">
-                                                                        {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "N/A"}
-                                                                    </div>
-                                                                </td>
-                                                                <td className="p-4">
-                                                                    <button
-                                                                        onClick={() => toggleRowExpansion(index)}
-                                                                        className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium"
-                                                                    >
-                                                                        {expandedRows.includes(index) ? (
-                                                                            <>
-                                                                                <ChevronUp size={18} />
-                                                                                Hide Details
-                                                                            </>
-                                                                        ) : (
-                                                                            <>
-                                                                                <ChevronDown size={18} />
-                                                                                View Details
-                                                                            </>
-                                                                        )}
-                                                                    </button>
-                                                                </td>
-                                                            </tr>
-                                                            {expandedRows.includes(index) && (
-                                                                <tr className="bg-blue-50">
-                                                                    <td colSpan={4} className="p-6">
-                                                                        <div className="bg-white rounded-xl p-6 shadow-inner">
-                                                                            <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                                                                                <FileCheck size={20} />
-                                                                                Detailed QC Points for IMEI: {item.imeiNo}
-                                                                            </h4>
-                                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                                                {Object.entries(QC_POINTS_MAPPING).map(([key, config]) => (
-                                                                                    <div
-                                                                                        key={key}
-                                                                                        className={`p-4 rounded-lg border ${item[key] ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}
-                                                                                    >
-                                                                                        <div className="flex items-start justify-between">
-                                                                                            <div>
-                                                                                                <div className="font-bold text-slate-800">
-                                                                                                    {config.label}
-                                                                                                </div>
-                                                                                                <div className="text-sm text-slate-600 mt-1">
-                                                                                                    {config.description}
-                                                                                                </div>
-                                                                                            </div>
-                                                                                            <div className={`flex items-center gap-1 ${item[key] ? 'text-green-600' : 'text-red-600'}`}>
-                                                                                                {item[key] ? (
-                                                                                                    <>
-                                                                                                        <CheckCircle size={20} />
-                                                                                                        <span className="font-bold">PASSED</span>
-                                                                                                    </>
-                                                                                                ) : (
-                                                                                                    <>
-                                                                                                        <XCircle size={20} />
-                                                                                                        <span className="font-bold">FAILED</span>
-                                                                                                    </>
-                                                                                                )}
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                ))}
-                                                                            </div>
-                                                                            <div className="mt-6 pt-6 border-t border-slate-200">
-                                                                                <div className="flex justify-between items-center">
-                                                                                    <div>
-                                                                                        <span className="text-slate-600">Overall Result:</span>
-                                                                                        <span className={`ml-2 font-bold text-lg ${passes ? 'text-green-600' : 'text-red-600'}`}>
-                                                                                            {passes ? 'ALL TESTS PASSED ✓' : 'SOME TESTS FAILED ✗'}
-                                                                                        </span>
-                                                                                    </div>
-                                                                                    <button
-                                                                                        onClick={() => {
-                                                                                            const singleReport = {
-                                                                                                qcReport: [item],
-                                                                                                normalizedDate: selectedDate
-                                                                                            };
-                                                                                            generateQCReportPDF(singleReport, `QC-Report-${item.imeiNo}`);
-                                                                                        }}
-                                                                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-                                                                                    >
-                                                                                        <Download size={16} />
-                                                                                        Download This Report
-                                                                                    </button>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </td>
-                                                                </tr>
-                                                            )}
-                                                        </React.Fragment>
-                                                    );
-                                                })}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="bg-white rounded-3xl shadow-lg border border-slate-200 p-16 text-center">
-                                    <div className="max-w-md mx-auto">
-                                        <FileCheck size={64} className="mx-auto text-slate-300 mb-6" />
-                                        <h3 className="text-xl font-bold text-slate-700 mb-3">
-                                            No QC Data Available
-                                        </h3>
-                                        <p className="text-slate-500 mb-8">
-                                            Select a date and click "View QC Data" to load quality control reports
-                                        </p>
-                                        <div className="flex items-center justify-center gap-2 text-blue-600">
-                                            <AlertCircle size={20} />
-                                            <span>Data will appear here after loading</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+                        <div className="mt-2 h-2 bg-slate-200 rounded-full overflow-hidden">
+                            <div
+                                className="h-full bg-gradient-to-r from-green-500 to-emerald-600 rounded-full transition-all duration-500"
+                                style={{ width: `${passRate}%` }}
+                            ></div>
                         </div>
                     </div>
+                </div>
+            </div>
+        )}
+    </div>
+
+    {/* 2. Middle Panel - Excel Module */}
+    <div className="lg:col-span-1">
+       <Xlsx/>
+    </div>
+
+    {/* 3. Right Panel - QC Data Display */}
+    <div className="lg:col-span-1">
+        {qcData.length > 0 ? (
+            <div className="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden h-full">
+                <div className="p-6 border-b border-slate-200">
+                    <div className="space-y-4">
+                        <div>
+                            <h3 className="text-xl font-bold text-slate-800">QC Inspection</h3>
+                            <p className="text-slate-500 text-sm">{selectedDate}</p>
+                        </div>
+                        <div className="flex flex-col gap-3">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
+                                <input
+                                    type="text"
+                                    placeholder="Search IMEI..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                            <select
+                                value={filterStatus}
+                                onChange={(e) => setFilterStatus(e.target.value)}
+                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none"
+                            >
+                                <option value="all">All Status</option>
+                                <option value="pass">Passed Only</option>
+                                <option value="fail">Failed Only</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead className="bg-slate-50 border-b">
+                            <tr>
+                                <th className="text-left p-4 text-xs font-semibold text-slate-600">IMEI</th>
+                                <th className="text-left p-4 text-xs font-semibold text-slate-600">Status</th>
+                                <th className="text-left p-4 text-xs font-semibold text-slate-600">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredData.map((item, index) => {
+                                const passes = checkQcPass(item);
+                                return (
+                                    <React.Fragment key={index}>
+                                        <tr className="border-b hover:bg-slate-50">
+                                            <td className="p-4 text-xs font-mono font-bold">{item.imeiNo}</td>
+                                            <td className="p-4">
+                                                <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${passes ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                    {passes ? 'PASS' : 'FAIL'}
+                                                </span>
+                                            </td>
+                                            <td className="p-4">
+                                                <button onClick={() => toggleRowExpansion(index)} className="text-blue-600">
+                                                    {expandedRows.includes(index) ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {/* Mobile-friendly expanded details view could go here */}
+                                    </React.Fragment>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        ) : (
+            <div className="bg-white rounded-3xl shadow-lg border border-slate-200 p-12 text-center h-full flex flex-col justify-center">
+                <FileCheck size={48} className="mx-auto text-slate-300 mb-4" />
+                <h3 className="text-lg font-bold text-slate-700">No QC Data</h3>
+                <p className="text-slate-500 text-sm">Select date to load</p>
+            </div>
+        )}
+    </div>
+</div>
 
                     {/* Assembly Report Section */}
                     <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-3xl p-8 border border-purple-100">
@@ -811,6 +710,8 @@ const Reports = () => {
                         <AssemblyChecklist />
 
                     </div>
+
+
 
                 </div>
                 <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-3xl p-8 border border-purple-100">

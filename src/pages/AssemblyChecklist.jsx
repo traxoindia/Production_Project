@@ -274,6 +274,7 @@ function AssemblyChecklist() {
       toast.error("Failed to generate PDF");
     }
   };
+  
 
   // Select/Deselect all IMEIs
   const toggleAllImeis = () => {
