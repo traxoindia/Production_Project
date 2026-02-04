@@ -184,7 +184,7 @@ function AssemblyChecklist() {
         doc.setFontSize(9); // Reduced from 10
         doc.setFont("helvetica", "normal");
         doc.text("FORMAT NO. F-TIA/102/01A", 10, 25);
-        doc.text(`Rev. 0`, pageWidth - 20, 25, { align: 'right' });
+        doc.text(`Rev. 1`, pageWidth - 20, 25, { align: 'right' });
         
         doc.text("Date : 22.12.2025", 10, 32);
         doc.text("Approved by : in charge production", pageWidth - 20, 32, { align: 'right' });
