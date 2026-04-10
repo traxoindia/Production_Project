@@ -30,11 +30,7 @@ const DocumentHeader = ({
   date = "10.04.2026" 
 }) => (
   <div className="">
-    
-      
-      
-      
-    
+
   </div>
 );
 
